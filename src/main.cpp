@@ -29,13 +29,10 @@ int InitTextures();
 const char *vert_shader_src = "\
 #version 150 core                                                            \n\
 in vec3 in_Position;                                                         \n\
-//in vec2 in_Texcoord;                                                       \n\
-//out vec2 Texcoord;                                                         \n\
 uniform mat4 View;                                                           \n\
 uniform mat4 Projection;                                                     \n\
 void main()                                                                  \n\
 {                                                                            \n\
-    //Texcoord = in_Texcoord;                                                \n\
     gl_Position = Projection * View * vec4(in_Position, 1.0);                \n\
 }                                                                            \n\
 ";
@@ -85,14 +82,19 @@ const GLfloat cube[24][3] = {
     {1, 1, 1}   //
 };
 
-const GLint indices[] = {
-    0, 3, 1, 0, 2, 3,
-    4, 7, 5, 4, 6, 7,
-    8, 11, 9, 8, 10, 11,
-    12, 15, 13, 12, 14, 15,
-    16, 19, 17, 16, 18, 19,
-    20, 23, 21, 20, 22, 23
+const GLfloat verts[6][4] = {
+    //  x      y      s      t
+    {-1.0f, -1.0f, 0.0f, 1.0f}, // BL
+    {-1.0f, 1.0f, 0.0f, 0.0f},  // TL
+    {1.0f, 1.0f, 1.0f, 0.0f},   // TR
+    {1.0f, -1.0f, 1.0f, 1.0f},  // BR
 };
+
+const GLint indicies[] = {0, 1, 2, 0, 2, 3};
+
+const GLint indices[] = {0,  3,  1,  0,  2,  3,  4,  7,  5,  4,  6,  7,
+                         8,  11, 9,  8,  10, 11, 12, 15, 13, 12, 14, 15,
+                         16, 19, 17, 16, 18, 19, 20, 23, 21, 20, 22, 23};
 
 void GLAPIENTRY
 MessageCallback( GLenum source,
@@ -221,21 +223,21 @@ int InitGeometry()
     // Populate vertex buffer
     glGenBuffers(1, &m_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
 
     // Populate element buffer
     glGenBuffers(1, &m_ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW);
 
     // Bind vertex position attribute
     GLint pos_attr_loc = glGetAttribLocation(m_shader_prog, "in_Position");
-    glVertexAttribPointer(pos_attr_loc, 1, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (void*)0);
+    glVertexAttribPointer(pos_attr_loc, 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(pos_attr_loc);
 
     // Bind vertex texture coordinate attribute
     // GLint tex_attr_loc = glGetAttribLocation(m_shader_prog, "in_Texcoord");
-    // glVertexAttribPointer(tex_attr_loc, 1, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
+    // glVertexAttribPointer(tex_attr_loc, 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
     // glEnableVertexAttribArray(tex_attr_loc);
 
     return 0;
@@ -300,7 +302,7 @@ int Update()
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, NULL);
     SDL_GL_SwapWindow(m_window);
     return 0;
 }
