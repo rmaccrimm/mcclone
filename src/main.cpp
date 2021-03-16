@@ -27,25 +27,22 @@ int InitGeometry();
 int InitTextures();
 
 const char *vert_shader_src = "\
-#version 150 core                                                            \n\
-in vec3 in_Position;                                                         \n\
+#version 330 core                                                            \n\
+layout(location=0) in vec2 in_Position;                                      \n\
 uniform mat4 View;                                                           \n\
 uniform mat4 Projection;                                                     \n\
 void main()                                                                  \n\
 {                                                                            \n\
-    gl_Position = Projection * View * vec4(in_Position, 1.0);                \n\
+    gl_Position = Projection * View * vec4(in_Position, 0.0, 1.0);                \n\
 }                                                                            \n\
 ";
 
 const char *frag_shader_src = "\
-#version 150 core                                                            \n\
-//in vec2 Texcoord;                                                          \n\
-out vec3 out_Color;                                                          \n\
-//uniform sampler2D tex;                                                       \n\
+#version 330 core                                                            \n\
+//layout(location=0) out vec3 out_Color;                                       \n\
 void main()                                                                  \n\
 {                                                                            \n\
-    //out_Color = texture(tex, Texcoord);                                    \n\
-    out_Color = vec3(0.0, 1.0, 0.0);                                         \n\
+    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);                                \n\
 }                                                                            \n\
 ";
 
@@ -82,12 +79,12 @@ const GLfloat cube[24][3] = {
     {1, 1, 1}   //
 };
 
-const GLfloat verts[6][4] = {
+const GLfloat verts[6][2] = {
     //  x      y      s      t
-    {-1.0f, -1.0f, 0.0f, 1.0f}, // BL
-    {-1.0f, 1.0f, 0.0f, 0.0f},  // TL
-    {1.0f, 1.0f, 1.0f, 0.0f},   // TR
-    {1.0f, -1.0f, 1.0f, 1.0f},  // BR
+    {-1.0f, -1.0f}, // BL
+    {-1.0f, 1.0f},  // TL
+    {1.0f, 1.0f},   // TR
+    {1.0f, -1.0f},  // BR
 };
 
 const GLint indicies[] = {0, 1, 2, 0, 2, 3};
@@ -133,7 +130,7 @@ int Initialize()
 
   // Initialize rendering context
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
@@ -208,7 +205,7 @@ int InitShaders()
     m_shader_prog = glCreateProgram();
     glAttachShader(m_shader_prog, m_vert_shader);
     glAttachShader(m_shader_prog, m_frag_shader);
-    glBindFragDataLocation(m_shader_prog, 0, "out_Color");
+    // glBindFragDataLocation(m_shader_prog, 0, "out_Color");
     glLinkProgram(m_shader_prog);
     glUseProgram(m_shader_prog);
 
@@ -231,9 +228,8 @@ int InitGeometry()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW);
 
     // Bind vertex position attribute
-    GLint pos_attr_loc = glGetAttribLocation(m_shader_prog, "in_Position");
-    glVertexAttribPointer(pos_attr_loc, 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), (void*)0);
-    glEnableVertexAttribArray(pos_attr_loc);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
 
     // Bind vertex texture coordinate attribute
     // GLint tex_attr_loc = glGetAttribLocation(m_shader_prog, "in_Texcoord");
@@ -300,9 +296,10 @@ int Update()
     
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
+    
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
     SDL_GL_SwapWindow(m_window);
     return 0;
 }
