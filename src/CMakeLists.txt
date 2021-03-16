@@ -1,4 +1,8 @@
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    SET(GCC_COMPILE_FLAGS 
+        "-fsanitize=address -Og -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \
+        -Wlogical-op -Wnull-dereference --std=c++17"
+    )
     SET(GCC_DEBUG_COMPILE_FLAGS 
         "-fsanitize=address -Og -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \
         -Wlogical-op -Wnull-dereference --std=c++17"

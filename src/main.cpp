@@ -28,12 +28,12 @@ int InitTextures();
 
 const char *vert_shader_src = "\
 #version 330 core                                                            \n\
-layout(location=0) in vec2 in_Position;                                      \n\
+layout(location=0) in vec3 in_Position;                                      \n\
 uniform mat4 View;                                                           \n\
 uniform mat4 Projection;                                                     \n\
 void main()                                                                  \n\
 {                                                                            \n\
-    gl_Position = Projection * View * vec4(in_Position, 0.0, 1.0);                \n\
+    gl_Position = Projection * View * vec4(in_Position, 1.0);                \n\
 }                                                                            \n\
 ";
 
@@ -159,6 +159,8 @@ int Initialize()
   glEnable( GL_DEBUG_OUTPUT );
   glDebugMessageCallback( MessageCallback, 0 );
 
+  glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
   InitShaders();
   InitGeometry();
   // InitTextures();
@@ -220,15 +222,15 @@ int InitGeometry()
     // Populate vertex buffer
     glGenBuffers(1, &m_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
 
     // Populate element buffer
     glGenBuffers(1, &m_ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // Bind vertex position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
     glEnableVertexAttribArray(0);
 
     // Bind vertex texture coordinate attribute
@@ -292,14 +294,14 @@ int Update()
     GLint proj_loc = glGetUniformLocation(m_shader_prog, "Projection");
 
     auto proj = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
-    auto view = glm::lookAt(glm::vec3(5.0f, 0.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0));
+    auto view = glm::lookAt(glm::vec3(3.0f, 2.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0));
     
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
     
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL);
     SDL_GL_SwapWindow(m_window);
     return 0;
 }
