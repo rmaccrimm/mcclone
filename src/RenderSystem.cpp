@@ -13,6 +13,9 @@
 
 #include <vector>
 #include <iostream>
+#include <string>
+#include <fstream>
+#include <streambuf>
 
 #include "RenderSystem.h"
 #include "EntityAdmin.h"
@@ -21,86 +24,68 @@
 const int VERT_BUFF_SIZE = 500 * (1 << 20);
 const int INDEX_BUFF_SIZE = 500 * (1 << 20);
 
-
-const char *vert_shader_src = "\
-#version 330 core                                                            \n\
-layout(location=0) in vec3 in_Position;                                      \n\
-uniform mat4 View;                                                           \n\
-uniform mat4 Projection;                                                     \n\
-void main()                                                                  \n\
-{                                                                            \n\
-    gl_Position = Projection * View * vec4(in_Position, 1.0);                \n\
-}                                                                            \n\
-";
-
-const char *frag_shader_src = "\
-#version 330 core                                                            \n\
-//layout(location=0) out vec3 out_Color;                                       \n\
-void main()                                                                  \n\
-{                                                                            \n\
-    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);                                \n\
-}                                                                            \n\
-";
-
-const glm::vec3 cube_left[] = {
-    glm::vec3(0, 0, 0),                             
-    glm::vec3(0, 0, 1),                             
-    glm::vec3(0, 1, 0),                             
-    glm::vec3(0, 1, 1),                             
-  
+enum CUBE_FACE {
+    LEFT = 0,
+    RIGHT = 1 ,
+    BOTTOM = 2,
+    TOP = 3,
+    FRONT = 4,
+    BACK = 5
 };
 
-const glm::vec3 cube_right[] = {
-    glm::vec3(1, 0, 1),
-    glm::vec3(1, 0, 0),
-    glm::vec3(1, 1, 1),
-    glm::vec3(1, 1, 0),
+const glm::vec3 CUBE_FACES[6][4] = {
+    {   // LEFT
+	glm::vec3(0, 0, 0),                             
+	glm::vec3(0, 0, 1),                             
+	glm::vec3(0, 1, 0),                             
+	glm::vec3(0, 1, 1),                             
+    },
+    {   // RIGHT
+	glm::vec3(1, 0, 1),
+	glm::vec3(1, 0, 0),
+	glm::vec3(1, 1, 1),
+	glm::vec3(1, 1, 0),
+    },
+    {   // BOTTOM
+	glm::vec3(0, 0, 0),
+	glm::vec3(1, 0, 0),
+	glm::vec3(0, 0, 1),
+	glm::vec3(1, 0, 1),
+    },
+    {   // TOP
+	glm::vec3(1, 1, 0),
+	glm::vec3(0, 1, 0),
+	glm::vec3(1, 1, 1),
+	glm::vec3(0, 1, 1),
+    },
+    {   // BACK
+	glm::vec3(0, 0, 0),
+	glm::vec3(0, 1, 0),
+	glm::vec3(1, 0, 0),
+	glm::vec3(1, 1, 0),
+    },
+    {   // FRONT
+	glm::vec3(0, 0, 1),
+	glm::vec3(0, 1, 1),
+	glm::vec3(1, 0, 1),
+	glm::vec3(1, 1, 1) 
+    }
 };
 
-const glm::vec3 cube_bottom[] = {
-    glm::vec3(0, 0, 0),
-    glm::vec3(1, 0, 0),
-    glm::vec3(0, 0, 1),
-    glm::vec3(1, 0, 1),
-};
-
-const glm::vec3 cube_top[] = {
-    glm::vec3(1, 1, 0),
-    glm::vec3(0, 1, 0),
-    glm::vec3(1, 1, 1),
-    glm::vec3(0, 1, 1),
-};
-
-const glm::vec3 cube_back[] = {
-    glm::vec3(0, 0, 0),
-    glm::vec3(0, 1, 0),
-    glm::vec3(1, 0, 0),
-    glm::vec3(1, 1, 0),
-};
-
-const glm::vec3 cube_front[] {
-    glm::vec3(0, 0, 1),
-    glm::vec3(0, 1, 1),
-    glm::vec3(1, 0, 1),
-    glm::vec3(1, 1, 1) 
-};
-
-const GLint indices[] = {0,  3,  1,  0,  2,  3,  4,  7,  5,  4,  6,  7,
-                         8,  11, 9,  8,  10, 11, 12, 15, 13, 12, 14, 15,
-                         16, 19, 17, 16, 18, 19, 20, 23, 21, 20, 22, 23};
-
-void GLAPIENTRY
-MessageCallback( GLenum source,
-                 GLenum type,
-                 GLuint id,
-                 GLenum severity,
-                 GLsizei length,
-                 const GLchar* message,
-                 const void* userParam )
+void GLAPIENTRY MessageCallback(
+    GLenum source,
+    GLenum type,
+    GLuint id,
+    GLenum severity,
+    GLsizei length,
+    const GLchar* message,
+    const void* userParam )
 {
-    fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-	     ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
-	     type, severity, message );
+    fprintf(
+        stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+	(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+	type, severity, message
+    );
 }
 
 /*
@@ -145,7 +130,7 @@ int RenderSystem::Initialize()
     InitGeometry();
     // InitTextures();
 
-  return 0;
+    return 0;
 }
 
 /*
@@ -159,9 +144,24 @@ int RenderSystem::InitShaders()
     glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
 
+    std::ifstream vert_in("/home/rmaccrimmon/projects/mcclone/src/solid_color_vert.glsl");
+    std::string vert_shader_src;
+
+    vert_in.seekg(0, std::ios::end);   
+    vert_shader_src.reserve(vert_in.tellg());
+    vert_in.seekg(0, std::ios::beg);
+
+    vert_shader_src.assign(
+	(std::istreambuf_iterator<char>(vert_in)),
+	std::istreambuf_iterator<char>()
+    );
+
+    std::cout << vert_shader_src << std::endl;
+    
     // Compile vertex shader
+    const char* vert_c_str = vert_shader_src.c_str();
     m_vert_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(m_vert_shader, 1, &vert_shader_src, NULL);
+    glShaderSource(m_vert_shader, 1, &vert_c_str, NULL);
     glCompileShader(m_vert_shader);
     glGetShaderiv(m_vert_shader, GL_COMPILE_STATUS, &status);
     if (status != GL_TRUE) {
@@ -171,9 +171,22 @@ int RenderSystem::InitShaders()
         return 1;
     }
 
+    std::ifstream frag_in("/home/rmaccrimmon/projects/mcclone/src/solid_color_frag.glsl");
+    std::string frag_shader_src;
+
+    frag_in.seekg(0, std::ios::end);   
+    frag_shader_src.reserve(frag_in.tellg());
+    frag_in.seekg(0, std::ios::beg);
+
+    frag_shader_src.assign(
+	(std::istreambuf_iterator<char>(frag_in)),
+	std::istreambuf_iterator<char>()
+    );
+
     // Compile fragment shader
+    const char* frag_c_str = frag_shader_src.c_str();
     m_frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(m_frag_shader, 1, &frag_shader_src, NULL);
+    glShaderSource(m_frag_shader, 1, &frag_c_str, NULL);
     glCompileShader(m_frag_shader);
     glGetShaderiv(m_frag_shader, GL_COMPILE_STATUS, &status);
     if (status != GL_TRUE) {
@@ -187,7 +200,6 @@ int RenderSystem::InitShaders()
     m_shader_prog = glCreateProgram();
     glAttachShader(m_shader_prog, m_vert_shader);
     glAttachShader(m_shader_prog, m_frag_shader);
-    // glBindFragDataLocation(m_shader_prog, 0, "out_Color");
     glLinkProgram(m_shader_prog);
     glUseProgram(m_shader_prog);
 
@@ -241,6 +253,8 @@ RenderSystem::~RenderSystem() {
     SDL_GL_DeleteContext(m_context);
     SDL_DestroyWindow(m_window);
     SDL_Quit();
+    delete[] m_vert_buff;
+    delete[] m_index_buff;
 }
 
 
@@ -263,7 +277,7 @@ void RenderSystem::RenderChunk(WorldChunk *chunk) {
 		    m_index_buff[k++] = i/3 + 2;
 		    m_index_buff[k++] = i/3 + 3;
 		    for (int j = 0; j < 4; j++) {
-			glm::vec4 pos = translate * glm::vec4(cube_top[j], 1);
+			glm::vec4 pos = translate * glm::vec4(CUBE_FACES[TOP][j], 1);
 			m_vert_buff[i++] = pos.x;
 			m_vert_buff[i++] = pos.y;
 			m_vert_buff[i++] = pos.z;
@@ -276,7 +290,7 @@ void RenderSystem::RenderChunk(WorldChunk *chunk) {
 		    m_index_buff[k++] = i/3 + 2;
 		    m_index_buff[k++] = i/3 + 3;
 		    for (int j = 0; j < 4; j++) {
-			glm::vec4 pos = translate * glm::vec4(cube_bottom[j], 1);
+			glm::vec4 pos = translate * glm::vec4(CUBE_FACES[BOTTOM][j], 1);
 			m_vert_buff[i++] = pos.x;
 			m_vert_buff[i++] = pos.y;
 			m_vert_buff[i++] = pos.z;
@@ -289,7 +303,7 @@ void RenderSystem::RenderChunk(WorldChunk *chunk) {
 		    m_index_buff[k++] = i/3 + 2;
 		    m_index_buff[k++] = i/3 + 3;
 		    for (int j = 0; j < 4; j++) {
-			glm::vec4 pos = translate * glm::vec4(cube_left[j], 1);
+			glm::vec4 pos = translate * glm::vec4(CUBE_FACES[LEFT][j], 1);
 			m_vert_buff[i++] = pos.x;
 			m_vert_buff[i++] = pos.y;
 			m_vert_buff[i++] = pos.z;
@@ -302,7 +316,7 @@ void RenderSystem::RenderChunk(WorldChunk *chunk) {
 		    m_index_buff[k++] = i/3 + 2;
 		    m_index_buff[k++] = i/3 + 3;
 		    for (int j = 0; j < 4; j++) {
-			glm::vec3 pos = translate * glm::vec4(cube_right[j], 1);
+			glm::vec3 pos = translate * glm::vec4(CUBE_FACES[RIGHT][j], 1);
 			m_vert_buff[i++] = pos.x;
 			m_vert_buff[i++] = pos.y;
 			m_vert_buff[i++] = pos.z;
@@ -315,7 +329,7 @@ void RenderSystem::RenderChunk(WorldChunk *chunk) {
 		    m_index_buff[k++] = i/3 + 2;
 		    m_index_buff[k++] = i/3 + 3;
 		    for (int j = 0; j < 4; j++) {
-			glm::vec4 pos = translate * glm::vec4(cube_front[j], 0);
+			glm::vec4 pos = translate * glm::vec4(CUBE_FACES[FRONT][j], 0);
 			m_vert_buff[i++] = pos.x;
 			m_vert_buff[i++] = pos.y;
 			m_vert_buff[i++] = pos.z;
@@ -328,7 +342,7 @@ void RenderSystem::RenderChunk(WorldChunk *chunk) {
 		    m_index_buff[k++] = i/3 + 2;
 		    m_index_buff[k++] = i/3 + 3;
                     for (int j = 0; j < 4; j++) {
-			glm::vec4 pos = translate * glm::vec4(cube_back[j], 1);
+			glm::vec4 pos = translate * glm::vec4(CUBE_FACES[BACK][j], 1);
 			m_vert_buff[i++] = pos.x;
 			m_vert_buff[i++] = pos.y;
 			m_vert_buff[i++] = pos.z;
