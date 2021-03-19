@@ -33,6 +33,21 @@ enum CUBE_FACE {
     BACK = 5
 };
 
+const glm::vec3 FACE_NORMALS[6]  = {
+    // LEFT
+    glm::vec3(-1, 0, 0),
+    // RIGHT
+    glm::vec3(1, 0, 0),
+    // BOTTOM
+    glm::vec3(0, -1, 0),
+    // TOP
+    glm::vec3(0, -1, 0),
+    // FRONT
+    glm::vec3(0, -1, 0),
+    // BACK
+    glm::vec3(0, 1, 0)
+};
+
 const glm::vec3 CUBE_FACES[6][4] = {
     {   // LEFT
 	glm::vec3(0, 0, 0),                             
@@ -58,13 +73,13 @@ const glm::vec3 CUBE_FACES[6][4] = {
 	glm::vec3(1, 1, 1),
 	glm::vec3(0, 1, 1),
     },
-    {   // BACK
+    {   // FRONT
 	glm::vec3(0, 0, 0),
 	glm::vec3(0, 1, 0),
 	glm::vec3(1, 0, 0),
 	glm::vec3(1, 1, 0),
     },
-    {   // FRONT
+    {   // BACK
 	glm::vec3(0, 0, 1),
 	glm::vec3(0, 1, 1),
 	glm::vec3(1, 0, 1),
@@ -257,7 +272,13 @@ RenderSystem::~RenderSystem() {
     delete[] m_index_buff;
 }
 
-
+bool check_neighbour(WorldChunk *chunk, glm::vec3 position, int face) {
+    auto n = position + FACE_NORMALS[face];
+    return (n.x >= 0 && n.x < WorldChunk::SPAN_X)
+	&& (n.y >= 0 && n.y < WorldChunk::SPAN_Y)
+	&& (n.z >= 0 && n.z < WorldChunk::SPAN_Z)
+	&& chunk->m_blocks[(int)n.x][(int)n.y][(int)n.z];
+}
 
 void RenderSystem::RenderChunk(WorldChunk *chunk) {
     int i = 0;
@@ -269,84 +290,24 @@ void RenderSystem::RenderChunk(WorldChunk *chunk) {
 		if (chunk->m_blocks[x][y][z]) {
 		    glm::vec3 position = glm::vec3(x, y, z);
 		    glm::mat4 translate = glm::translate(glm::mat4(1), position);
-
-		    m_index_buff[k++] = i/3;
-		    m_index_buff[k++] = i/3 + 3;
-		    m_index_buff[k++] = i/3 + 1;
-		    m_index_buff[k++] = i/3;
-		    m_index_buff[k++] = i/3 + 2;
-		    m_index_buff[k++] = i/3 + 3;
-		    for (int j = 0; j < 4; j++) {
-			glm::vec4 pos = translate * glm::vec4(CUBE_FACES[TOP][j], 1);
-			m_vert_buff[i++] = pos.x;
-			m_vert_buff[i++] = pos.y;
-			m_vert_buff[i++] = pos.z;
+		    
+		    for (int q = 0; q < 6; q++) {
+			if (!check_neighbour(chunk, position, q)) {
+			    m_index_buff[k++] = i/3;
+			    m_index_buff[k++] = i/3 + 3;
+			    m_index_buff[k++] = i/3 + 1;
+			    m_index_buff[k++] = i/3;
+			    m_index_buff[k++] = i/3 + 2;
+			    m_index_buff[k++] = i/3 + 3;
+			    for (int j = 0; j < 4; j++) {
+				glm::vec4 pos = translate * glm::vec4(CUBE_FACES[q][j], 1);
+				m_vert_buff[i++] = pos.x;
+				m_vert_buff[i++] = pos.y;
+				m_vert_buff[i++] = pos.z;
+			    }
+			    
+			}
 		    }
-
-		    m_index_buff[k++] = i/3;
-		    m_index_buff[k++] = i/3 + 3;
-		    m_index_buff[k++] = i/3 + 1;
-		    m_index_buff[k++] = i/3;
-		    m_index_buff[k++] = i/3 + 2;
-		    m_index_buff[k++] = i/3 + 3;
-		    for (int j = 0; j < 4; j++) {
-			glm::vec4 pos = translate * glm::vec4(CUBE_FACES[BOTTOM][j], 1);
-			m_vert_buff[i++] = pos.x;
-			m_vert_buff[i++] = pos.y;
-			m_vert_buff[i++] = pos.z;
-		    }
-
-		    m_index_buff[k++] = i/3;
-		    m_index_buff[k++] = i/3 + 3;
-		    m_index_buff[k++] = i/3 + 1;
-		    m_index_buff[k++] = i/3;
-		    m_index_buff[k++] = i/3 + 2;
-		    m_index_buff[k++] = i/3 + 3;
-		    for (int j = 0; j < 4; j++) {
-			glm::vec4 pos = translate * glm::vec4(CUBE_FACES[LEFT][j], 1);
-			m_vert_buff[i++] = pos.x;
-			m_vert_buff[i++] = pos.y;
-			m_vert_buff[i++] = pos.z;
-		    }
-
-		    m_index_buff[k++] = i/3;
-		    m_index_buff[k++] = i/3 + 3;
-		    m_index_buff[k++] = i/3 + 1;
-		    m_index_buff[k++] = i/3;
-		    m_index_buff[k++] = i/3 + 2;
-		    m_index_buff[k++] = i/3 + 3;
-		    for (int j = 0; j < 4; j++) {
-			glm::vec3 pos = translate * glm::vec4(CUBE_FACES[RIGHT][j], 1);
-			m_vert_buff[i++] = pos.x;
-			m_vert_buff[i++] = pos.y;
-			m_vert_buff[i++] = pos.z;
-		    }
-
-		    m_index_buff[k++] = i/3;
-		    m_index_buff[k++] = i/3 + 3;
-		    m_index_buff[k++] = i/3 + 1;
-		    m_index_buff[k++] = i/3;
-		    m_index_buff[k++] = i/3 + 2;
-		    m_index_buff[k++] = i/3 + 3;
-		    for (int j = 0; j < 4; j++) {
-			glm::vec4 pos = translate * glm::vec4(CUBE_FACES[FRONT][j], 0);
-			m_vert_buff[i++] = pos.x;
-			m_vert_buff[i++] = pos.y;
-			m_vert_buff[i++] = pos.z;
-		    }
-
-		    m_index_buff[k++] = i/3;
-		    m_index_buff[k++] = i/3 + 3;
-		    m_index_buff[k++] = i/3 + 1;
-		    m_index_buff[k++] = i/3;
-		    m_index_buff[k++] = i/3 + 2;
-		    m_index_buff[k++] = i/3 + 3;
-                    for (int j = 0; j < 4; j++) {
-			glm::vec4 pos = translate * glm::vec4(CUBE_FACES[BACK][j], 1);
-			m_vert_buff[i++] = pos.x;
-			m_vert_buff[i++] = pos.y;
-			m_vert_buff[i++] = pos.z;
-                    }
                 }
             }
         }
@@ -369,7 +330,7 @@ void RenderSystem::RenderChunk(WorldChunk *chunk) {
 
     auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 100.0f);
     auto view =
-	glm::lookAt(glm::vec3(-5.0f, 20.0f, -4.0f), glm::vec3(16.0f, 5.0f, 16.0f),
+	glm::lookAt(glm::vec3(-20.0f, 20.0f, -4.0f), glm::vec3(16.0f, 5.0f, 16.0f),
 		    glm::vec3(0.0f, 1.0f, 0.0));
 
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
