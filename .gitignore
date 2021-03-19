@@ -1,0 +1,7 @@
+src/include/glm/
+build/
+debug/
+.*
+!/.gitignore
+#*
+~*
