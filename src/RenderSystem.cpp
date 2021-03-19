@@ -18,6 +18,9 @@
 #include "EntityAdmin.h"
 #include "WorldChunk.h"
 
+const int VERT_BUFF_SIZE = 500 * (1 << 20);
+const int INDEX_BUFF_SIZE = 500 * (1 << 20);
+
 
 const char *vert_shader_src = "\
 #version 330 core                                                            \n\
@@ -39,39 +42,6 @@ void main()                                                                  \n\
 }                                                                            \n\
 ";
 
-const GLfloat cube[24][3] = {
-    // x = 0 face (left)
-    {0, 0, 0},  // BL
-    {0, 0, 1},  // BR
-    {0, 1, 0},  // TL
-    {0, 1, 1},  // TR
-    // x = 1 face (right)
-    {1, 0, 1},  // BL
-    {1, 0, 0},  // BR 
-    {1, 1, 1},  // TL
-    {1, 1, 0},  // TR
-    // y = 0 face (bottom)
-    {0, 0, 0},  //
-    {1, 0, 0},  //
-    {0, 0, 1},  // 
-    {1, 0, 1},  //
-    // y = 1 face (top)
-    {0, 1, 0},  //
-    {0, 1, 1},  //
-    {1, 1, 1},  //
-    {1, 1, 0},  //
-    // z = 0 face (back)
-    {0, 0, 0},  //
-    {0, 1, 0},  //
-    {1, 0, 0},  //
-    {1, 1, 0},  //
-    // z = 1 face (front)
-    {0, 0, 1},  //
-    {0, 1, 1},  //
-    {1, 0, 1},  //
-    {1, 1, 1}   //
-};
-
 const glm::vec3 cube_left[] = {
     glm::vec3(0, 0, 0),                             
     glm::vec3(0, 0, 1),                             
@@ -79,6 +49,7 @@ const glm::vec3 cube_left[] = {
     glm::vec3(0, 1, 1),                             
   
 };
+
 const glm::vec3 cube_right[] = {
     glm::vec3(1, 0, 1),
     glm::vec3(1, 0, 0),
@@ -223,8 +194,7 @@ int RenderSystem::InitShaders()
     return 0;
 }
 
-float vert_buff[100000 * 3] = {0};
-int index_buff[100000 * 3] = {0};
+
 
 /*
  * Initialize Geometry
@@ -234,12 +204,12 @@ int RenderSystem::InitGeometry()
     // Populate vertex buffer
     glGenBuffers(1, &m_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vert_buff), NULL, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, VERT_BUFF_SIZE, NULL, GL_STREAM_DRAW);
 
     // Populate element buffer
     glGenBuffers(1, &m_ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_buff), NULL, GL_STREAM_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFF_SIZE, NULL, GL_STREAM_DRAW);
 
     // Bind vertex position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
@@ -252,6 +222,8 @@ int RenderSystem::InitGeometry()
 RenderSystem::RenderSystem(EntityAdmin *admin, SDL_Window* window) {
     m_admin = admin;
     m_window = window;
+    m_vert_buff = new GLfloat[VERT_BUFF_SIZE];
+    m_index_buff = new GLint[INDEX_BUFF_SIZE];
 }
 
 RenderSystem::~RenderSystem() {
@@ -276,134 +248,114 @@ RenderSystem::~RenderSystem() {
 void RenderSystem::RenderChunk(WorldChunk *chunk) {
     int i = 0;
     int k = 0;
-    int z = 0;
-    for (int x = 0; x < WorldChunk::SPAN_X; x++) {
-	for (int z = 0; z < WorldChunk::SPAN_Z; z++) {
-	    if (chunk->m_blocks[x][0][z]) {
+    
+    for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
+	for (int x = 0; x < WorldChunk::SPAN_X; x++) {
+	    for (int z = 0; z < WorldChunk::SPAN_Z; z++) {
+		if (chunk->m_blocks[x][y][z]) {
+		    glm::vec3 position = glm::vec3(x, y, z);
+		    glm::mat4 translate = glm::translate(glm::mat4(1), position);
 
-		glm::vec3 position = glm::vec3((float)x, 0, (float)z);
-		glm::mat4 translate = glm::translate(glm::mat4(1), position);
+		    m_index_buff[k++] = i/3;
+		    m_index_buff[k++] = i/3 + 3;
+		    m_index_buff[k++] = i/3 + 1;
+		    m_index_buff[k++] = i/3;
+		    m_index_buff[k++] = i/3 + 2;
+		    m_index_buff[k++] = i/3 + 3;
+		    for (int j = 0; j < 4; j++) {
+			glm::vec4 pos = translate * glm::vec4(cube_top[j], 1);
+			m_vert_buff[i++] = pos.x;
+			m_vert_buff[i++] = pos.y;
+			m_vert_buff[i++] = pos.z;
+		    }
 
-		// std::cout << "i: " << i << std::endl;
-		// std::cout << "Drawing block at: ("
-		// 	  << x
-		// 	  << ", "
-		// 	  << z
-		// 	  << ") "
-		// 	  // << glm::to_string(translate * glm::vec4(cube_bottom[0].x,
-		// 						  // cube_bottom[0].y,
-		// 						  // cube_bottom[0].z,
-		// 						  // 1))
-		// 	  << glm::to_string(translate * glm::vec4(cube_bottom[0], 1))
-		// 	  << "\n";
-		
+		    m_index_buff[k++] = i/3;
+		    m_index_buff[k++] = i/3 + 3;
+		    m_index_buff[k++] = i/3 + 1;
+		    m_index_buff[k++] = i/3;
+		    m_index_buff[k++] = i/3 + 2;
+		    m_index_buff[k++] = i/3 + 3;
+		    for (int j = 0; j < 4; j++) {
+			glm::vec4 pos = translate * glm::vec4(cube_bottom[j], 1);
+			m_vert_buff[i++] = pos.x;
+			m_vert_buff[i++] = pos.y;
+			m_vert_buff[i++] = pos.z;
+		    }
 
-		index_buff[k++] = i/3;
-		index_buff[k++] = i/3 + 3;
-		index_buff[k++] = i/3 + 1;
-		index_buff[k++] = i/3;
-		index_buff[k++] = i/3 + 2;
-		index_buff[k++] = i/3 + 3;
-		for (int j = 0; j < 4; j++) {
-		    glm::vec4 pos = translate * glm::vec4(cube_top[j], 1);
-		    vert_buff[i++] = pos.x;
-		    vert_buff[i++] = pos.y;
-		    vert_buff[i++] = pos.z;
-		}
+		    m_index_buff[k++] = i/3;
+		    m_index_buff[k++] = i/3 + 3;
+		    m_index_buff[k++] = i/3 + 1;
+		    m_index_buff[k++] = i/3;
+		    m_index_buff[k++] = i/3 + 2;
+		    m_index_buff[k++] = i/3 + 3;
+		    for (int j = 0; j < 4; j++) {
+			glm::vec4 pos = translate * glm::vec4(cube_left[j], 1);
+			m_vert_buff[i++] = pos.x;
+			m_vert_buff[i++] = pos.y;
+			m_vert_buff[i++] = pos.z;
+		    }
 
-		index_buff[k++] = i/3;
-		index_buff[k++] = i/3 + 3;
-		index_buff[k++] = i/3 + 1;
-		index_buff[k++] = i/3;
-		index_buff[k++] = i/3 + 2;
-		index_buff[k++] = i/3 + 3;
-		for (int j = 0; j < 4; j++) {
-		    glm::vec4 pos = translate * glm::vec4(cube_bottom[j], 1);
-		    vert_buff[i++] = pos.x;
-		    vert_buff[i++] = pos.y;
-		    vert_buff[i++] = pos.z;
-		}
+		    m_index_buff[k++] = i/3;
+		    m_index_buff[k++] = i/3 + 3;
+		    m_index_buff[k++] = i/3 + 1;
+		    m_index_buff[k++] = i/3;
+		    m_index_buff[k++] = i/3 + 2;
+		    m_index_buff[k++] = i/3 + 3;
+		    for (int j = 0; j < 4; j++) {
+			glm::vec3 pos = translate * glm::vec4(cube_right[j], 1);
+			m_vert_buff[i++] = pos.x;
+			m_vert_buff[i++] = pos.y;
+			m_vert_buff[i++] = pos.z;
+		    }
 
-		index_buff[k++] = i/3;
-		index_buff[k++] = i/3 + 3;
-		index_buff[k++] = i/3 + 1;
-		index_buff[k++] = i/3;
-		index_buff[k++] = i/3 + 2;
-		index_buff[k++] = i/3 + 3;
-		for (int j = 0; j < 4; j++) {
-		    glm::vec4 pos = translate * glm::vec4(cube_left[j], 1);
-		    vert_buff[i++] = pos.x;
-		    vert_buff[i++] = pos.y;
-		    vert_buff[i++] = pos.z;
-		}
+		    m_index_buff[k++] = i/3;
+		    m_index_buff[k++] = i/3 + 3;
+		    m_index_buff[k++] = i/3 + 1;
+		    m_index_buff[k++] = i/3;
+		    m_index_buff[k++] = i/3 + 2;
+		    m_index_buff[k++] = i/3 + 3;
+		    for (int j = 0; j < 4; j++) {
+			glm::vec4 pos = translate * glm::vec4(cube_front[j], 0);
+			m_vert_buff[i++] = pos.x;
+			m_vert_buff[i++] = pos.y;
+			m_vert_buff[i++] = pos.z;
+		    }
 
-		index_buff[k++] = i/3;
-		index_buff[k++] = i/3 + 3;
-		index_buff[k++] = i/3 + 1;
-		index_buff[k++] = i/3;
-		index_buff[k++] = i/3 + 2;
-		index_buff[k++] = i/3 + 3;
-		for (int j = 0; j < 4; j++) {
-		    glm::vec3 pos = translate * glm::vec4(cube_right[j], 1);
-		    vert_buff[i++] = pos.x;
-		    vert_buff[i++] = pos.y;
-		    vert_buff[i++] = pos.z;
-		}
-
-		index_buff[k++] = i/3;
-		index_buff[k++] = i/3 + 3;
-		index_buff[k++] = i/3 + 1;
-		index_buff[k++] = i/3;
-		index_buff[k++] = i/3 + 2;
-		index_buff[k++] = i/3 + 3;
-		for (int j = 0; j < 4; j++) {
-		    glm::vec4 pos = translate * glm::vec4(cube_front[j], 0);
-		    vert_buff[i++] = pos.x;
-		    vert_buff[i++] = pos.y;
-		    vert_buff[i++] = pos.z;
-		}
-
-		index_buff[k++] = i/3;
-		index_buff[k++] = i/3 + 3;
-		index_buff[k++] = i/3 + 1;
-		index_buff[k++] = i/3;
-		index_buff[k++] = i/3 + 2;
-		index_buff[k++] = i/3 + 3;
-		for (int j = 0; j < 4; j++) {
-		    glm::vec4 pos = translate * glm::vec4(cube_back[j], 1);
-		    vert_buff[i++] = pos.x;
-		    vert_buff[i++] = pos.y;
-		    vert_buff[i++] = pos.z;
-		}
-	    }
-	}
-	
+		    m_index_buff[k++] = i/3;
+		    m_index_buff[k++] = i/3 + 3;
+		    m_index_buff[k++] = i/3 + 1;
+		    m_index_buff[k++] = i/3;
+		    m_index_buff[k++] = i/3 + 2;
+		    m_index_buff[k++] = i/3 + 3;
+                    for (int j = 0; j < 4; j++) {
+			glm::vec4 pos = translate * glm::vec4(cube_back[j], 1);
+			m_vert_buff[i++] = pos.x;
+			m_vert_buff[i++] = pos.y;
+			m_vert_buff[i++] = pos.z;
+                    }
+                }
+            }
+        }
     }
     
-    // for (int q = 0; q < i; q++) {
-	// if (!(q % 3)) {
-	    // std::cout << '\n';
-	// }
-	// std::cout << vert_buff[q] << ' ';
-    // }
 
     glBufferSubData(GL_ARRAY_BUFFER,
 		    0,
 		    (i) * sizeof(GLfloat) ,
-		    vert_buff);
+		    m_vert_buff);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
 		    0,
 		    (k) * sizeof(GLint),
-		    index_buff);
+		    m_index_buff);
 
     glUseProgram(m_shader_prog);
 
     GLint view_loc = glGetUniformLocation(m_shader_prog, "View");
     GLint proj_loc = glGetUniformLocation(m_shader_prog, "Projection");
 
-    auto proj = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+    auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 100.0f);
     auto view =
-	glm::lookAt(glm::vec3(-5.0f, 10.0f, -4.0f), glm::vec3(16.0f, 0.0f, 16.0f),
+	glm::lookAt(glm::vec3(-5.0f, 20.0f, -4.0f), glm::vec3(16.0f, 5.0f, 16.0f),
 		    glm::vec3(0.0f, 1.0f, 0.0));
 
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));

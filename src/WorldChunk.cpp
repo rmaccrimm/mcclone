@@ -10,7 +10,9 @@ WorldChunk::WorldChunk() : m_blocks() {
 
     for (int x = 0; x < 32; x++) {
 	for (int z = 0; z < 32; z++) {
-	    m_blocks[x][0][z] = 1;
+	    for (int y = 0; y < 10; y++) {
+		m_blocks[x][y][z] = 1;
+	    }
 	} 
     }
 }

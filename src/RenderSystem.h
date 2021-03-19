@@ -40,6 +40,8 @@ private:
     GLuint m_vert_shader;
     GLuint m_frag_shader;
     GLuint m_shader_prog;
+    GLfloat *m_vert_buff;
+    GLint *m_index_buff;
 };
 
 #endif /* _RENDERSYSTEM_H_ */

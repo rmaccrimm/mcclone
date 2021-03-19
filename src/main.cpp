@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     // Create main window
     SDL_Window *window = 
 	SDL_CreateWindow("SDL App", SDL_WINDOWPOS_CENTERED,
-			 SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
+			 SDL_WINDOWPOS_CENTERED, 1920, 1080, SDL_WINDOW_OPENGL);
     if (window == NULL) {
 	fprintf(stderr, "Failed to create main window\n");
 	SDL_Quit();
