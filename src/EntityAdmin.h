@@ -3,45 +3,57 @@
 
 #include <vector>
 #include <unordered_map>
+#include <ranges>
 
 #include "components/Component.h"
 
-/*  Requirements:
-    - Need to be able to create an entity, and assign it various components
-    - Quickly determine if an entity matches a given signature (list of components)
-      -> can use a bit mask with bits for each component type, (but then limited to 64 
-         component types)
-    - Assign components out of a static pool
-      -> BaseComponent pointers that are type-casted? Some kind of union type?
- */
+
 class EntityAdmin
 {
 public:
-    EntityAdmin();
+    EntityAdmin();  
 
+    /* Creates a new entity with the given list of component types. All components are 
+       default-initialized and can only be modified after creation with getComponent
+     */
     template<class ...Types>
     int createEntity()
     {
-	int id = __COUNTER__;
 	Entity entity;
-	((m_comp_pool[m_comp_counter].assign<Types>(),
+	int id = m_id_counter++;
+	entity.m_tag = getTag<Types...>();
+	((m_comp_pool[m_comp_counter] = Types(),
 	  entity.m_components.push_back(m_comp_counter++)), ...);
 	m_entity_map[id] = entity;
 	return id;
     }
 
+    /* Given an entity id, produces a pointer to the entity component with the given type, 
+       or nullptr if the entity does not contain a component of that type 
+     */
     template<class T>
     T* getComponent(int entity_id)
     {
 	for (auto i: m_entity_map[entity_id].m_components) {
-	    if (std::get_if<T>(&m_comp_pool[i].m_variant)) {
-		return &std::get<T>(m_comp_pool[i].m_variant);
+	    if (std::get_if<T>(&m_comp_pool[i])) {
+		return &std::get<T>(m_comp_pool[i]);
 	    }
 	}
 	return nullptr;
     }
-    
-// private:
+
+    /* Produces a view returning the id of each element that contains only the given
+       set of component types. Intended for easily obtaining desired components in systems
+       with for (:) syntax
+     */ 
+    template<class ...Types>
+    auto componentView() {
+	int tag = getTag<Types...>();
+	auto tag_filter = [=](const auto& p){ return p.second.m_tag == tag; };
+	return m_entity_map | std::views::filter(tag_filter) | std::views::keys;
+    }
+
+private:
     class Entity
     {
     public:
@@ -49,10 +61,17 @@ public:
 	std::vector<int> m_components;
     };
 
+    template<class ...Types>
+    int getTag() {
+	return (Types::TAG | ...);
+    }
+
+    int m_id_counter = 0;
     std::unordered_map<int, Entity> m_entity_map;
-    Component m_comp_pool[100];
-    // InputManager m_input;
+    
+    // Will need a more proper pool allocator once entity deletion is added
     int m_comp_counter;
+    Component m_comp_pool[100];
 };
 
 #endif

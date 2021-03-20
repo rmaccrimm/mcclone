@@ -16,6 +16,9 @@
 #include "EntityAdmin.h"
 #include "components/Component.h"
 
+#include <unordered_map>
+#include <ranges>
+
 /*
  * Program entry point
  */
@@ -41,9 +44,10 @@ int main()
     }
 
     EntityAdmin admin;
-    int id = admin.createEntity<CameraComponent, TransformComponent>();
-    auto transform = admin.getComponent<TransformComponent>(id)->m_matrix;
-    std::cout << glm::to_string(transform) << '\n';
+    admin.createEntity<CameraComponent, TransformComponent, PlayerControlComponent>();
+
+    // return 0;
+
 
     Renderer render(&admin, window);
     
@@ -55,7 +59,7 @@ int main()
 
     printf("Running...\n");
     render.renderChunk(&chunk);
-    render.tick();
+
     
     for (should_run = 1; should_run; ) {
         SDL_Event event;
@@ -65,7 +69,6 @@ int main()
                 break;
             }
         }
-
     }
 
     printf("Exiting...\n");

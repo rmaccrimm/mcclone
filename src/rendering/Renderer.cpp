@@ -170,8 +170,6 @@ int Renderer::initShaders()
 	std::istreambuf_iterator<char>()
     );
 
-    std::cout << vert_shader_src << std::endl;
-    
     // Compile vertex shader
     const char* vert_c_str = vert_shader_src.c_str();
     m_vert_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -219,7 +217,6 @@ int Renderer::initShaders()
 
     return 0;
 }
-
 
 
 /*
@@ -343,5 +340,38 @@ void Renderer::renderChunk(WorldChunk *chunk) {
 }
 
 void Renderer::tick() {
-    
+    // if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+    //     auto key_code = event.key.keysym.sym;
+    //     if (event.type == SDL_KEYDOWN) {
+    // 	    switch (key_code) 
+    //             {
+    //             case SDLK_w:
+    //                 // pause = true;
+    //                 break;
+    //             case SDLK_1:
+    //             case SDLK_2:
+    //             case SDLK_3:
+    //             case SDLK_4:
+    //             case SDLK_5:
+    //             case SDLK_6:
+    //             case SDLK_7:
+    //             case SDLK_8:
+    //             case SDLK_9:
+    //                 // current_palette = key_code - SDLK_1;
+    //                 break;
+    //             case SDLK_BACKQUOTE:
+    //                 invert_colors = !invert_colors;
+    //             };
+    // 	    key_pressed[key_code] = !key_pressed[key_code];
+    // 	    joypad->press_key(joy_key);
+    //         }
+    //     }
+    //     else {
+    //         if (key_pressed[key_code]) {
+    //             joypad->release_key(joy_key);
+    //             key_pressed[key_code] = !key_pressed[key_code];
+    //         }
+    //     }
+    // }
+    // draw = false;
 }

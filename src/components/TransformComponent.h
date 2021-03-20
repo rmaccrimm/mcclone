@@ -6,7 +6,7 @@
 struct TransformComponent
 {
     static const int TAG = 1 << __COUNTER__;
-    glm::mat4x4 m_matrix;
+    glm::mat4 m_matrix = glm::mat4(1.0);
 };
 
 #endif /* _TRANSFORMCOMPONENT_H_ */

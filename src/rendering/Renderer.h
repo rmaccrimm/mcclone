@@ -20,7 +20,6 @@ public:
     void renderChunk(WorldChunk* chunk);
 
 private:
-    int update();
     int cleanup();
     int initShaders();
     int initGeometry();
