@@ -22,7 +22,13 @@ link_libraries(${GLEW_LIBRARIES})
 add_compile_definitions(PROJECT_ROOT="${PROJECT_SOURCE_DIR}")
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-add_executable(main main.cpp RenderSystem.cpp WorldChunk.cpp)
+add_executable(
+	main
+	main.cpp
+	RenderSystem.cpp
+	WorldChunk.cpp
+	EntityAdmin.cpp
+)
 target_link_libraries(main
     SDL2::SDL2
     GLEW::GLEW

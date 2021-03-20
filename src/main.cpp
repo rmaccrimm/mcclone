@@ -9,12 +9,26 @@
 #include "WorldChunk.h"
 
 #include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
+
+#include <variant>
+#include <iostream>
+
+#include "EntityAdmin.h"
+#include "components/Component.h"
+
+#include <glm/gtx/string_cast.hpp>
 
 /*
  * Program entry point
  */
-int main(int argc, char *argv[])
+int main()
 {
+    EntityAdmin admin;
+    int id = admin.createEntity<CameraComponent, TransformComponent>();
+    auto transform = admin.getComponent<TransformComponent>(id)->m_matrix;
+    std::cout << glm::to_string(transform) << '\n';
+    
     int should_run;
 
     printf("Initializing...\n");

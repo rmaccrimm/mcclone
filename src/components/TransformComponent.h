@@ -1,13 +1,12 @@
 #ifndef _TRANSFORMCOMPONENT_H_
 #define _TRANSFORMCOMPONENT_H_
 
-#include <glm/glm.hpp>
+#include <glm/mat4x4.hpp>
 
 struct TransformComponent
 {
-    glm::mat4x4 m_transformation;
+    static const int TAG = 1 << 1;
+    glm::mat4x4 m_matrix;
 };
-
-
 
 #endif /* _TRANSFORMCOMPONENT_H_ */
