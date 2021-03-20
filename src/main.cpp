@@ -5,30 +5,22 @@
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 #include <stdio.h>
-#include "RenderSystem.h"
-#include "WorldChunk.h"
-
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
-
 #include <variant>
 #include <iostream>
+#include <glm/gtx/string_cast.hpp>
 
+#include "rendering/Renderer.h"
+#include "WorldChunk.h"
 #include "EntityAdmin.h"
 #include "components/Component.h"
-
-#include <glm/gtx/string_cast.hpp>
 
 /*
  * Program entry point
  */
 int main()
 {
-    EntityAdmin admin;
-    int id = admin.createEntity<CameraComponent, TransformComponent>();
-    auto transform = admin.getComponent<TransformComponent>(id)->m_matrix;
-    std::cout << glm::to_string(transform) << '\n';
-    
     int should_run;
 
     printf("Initializing...\n");
@@ -48,17 +40,22 @@ int main()
 	return 1;
     }
 
-    RenderSystem render(NULL, window);
+    EntityAdmin admin;
+    int id = admin.createEntity<CameraComponent, TransformComponent>();
+    auto transform = admin.getComponent<TransformComponent>(id)->m_matrix;
+    std::cout << glm::to_string(transform) << '\n';
+
+    Renderer render(&admin, window);
     
-    if (render.Initialize()) {
+    if (render.initialize()) {
         return 1;
     }
 
     WorldChunk chunk;
 
     printf("Running...\n");
-    render.RenderChunk(&chunk);
-    render.Tick();
+    render.renderChunk(&chunk);
+    render.tick();
     
     for (should_run = 1; should_run; ) {
         SDL_Event event;

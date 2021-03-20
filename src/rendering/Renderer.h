@@ -9,22 +9,22 @@ class EntityAdmin;
 class WorldChunk;
 
 
-class RenderSystem {
+class Renderer {
     
 public:
-    RenderSystem(EntityAdmin *admin, SDL_Window *window);
-    ~RenderSystem();
+    Renderer(EntityAdmin *admin, SDL_Window *window);
+    ~Renderer();
 
-    int Initialize();
-    void Tick();
-    void RenderChunk(WorldChunk* chunk);
+    int initialize();
+    void tick();
+    void renderChunk(WorldChunk* chunk);
 
 private:
-    int Update();
-    int Cleanup();
-    int InitShaders();
-    int InitGeometry();
-    int InitTextures();
+    int update();
+    int cleanup();
+    int initShaders();
+    int initGeometry();
+    int initTextures();
 
 
     // void RenderEntities();

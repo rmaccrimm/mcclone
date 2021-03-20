@@ -1,17 +1,22 @@
 [
 {
   "directory": "/home/rmaccrimmon/projects/mcclone/debug/src",
-  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/include -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors -Wlogical-op -Wnull-dereference --std=c++17 -o CMakeFiles/main.dir/main.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/main.cpp",
+  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++17 -o CMakeFiles/main.dir/main.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/main.cpp",
   "file": "/home/rmaccrimmon/projects/mcclone/src/main.cpp"
 },
 {
   "directory": "/home/rmaccrimmon/projects/mcclone/debug/src",
-  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/include -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors -Wlogical-op -Wnull-dereference --std=c++17 -o CMakeFiles/main.dir/RenderSystem.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/RenderSystem.cpp",
-  "file": "/home/rmaccrimmon/projects/mcclone/src/RenderSystem.cpp"
+  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++17 -o CMakeFiles/main.dir/rendering/Renderer.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/rendering/Renderer.cpp",
+  "file": "/home/rmaccrimmon/projects/mcclone/src/rendering/Renderer.cpp"
 },
 {
   "directory": "/home/rmaccrimmon/projects/mcclone/debug/src",
-  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/include -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors -Wlogical-op -Wnull-dereference --std=c++17 -o CMakeFiles/main.dir/WorldChunk.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/WorldChunk.cpp",
+  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++17 -o CMakeFiles/main.dir/WorldChunk.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/WorldChunk.cpp",
   "file": "/home/rmaccrimmon/projects/mcclone/src/WorldChunk.cpp"
+},
+{
+  "directory": "/home/rmaccrimmon/projects/mcclone/debug/src",
+  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++17 -o CMakeFiles/main.dir/EntityAdmin.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/EntityAdmin.cpp",
+  "file": "/home/rmaccrimmon/projects/mcclone/src/EntityAdmin.cpp"
 }
 ]

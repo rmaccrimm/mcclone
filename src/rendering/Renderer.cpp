@@ -17,9 +17,10 @@
 #include <fstream>
 #include <streambuf>
 
-#include "RenderSystem.h"
+#include "Renderer.h"
 #include "EntityAdmin.h"
 #include "WorldChunk.h"
+#include "config.h"
 
 const int VERT_BUFF_SIZE = 500 * (1 << 20);
 const int INDEX_BUFF_SIZE = 500 * (1 << 20);
@@ -88,13 +89,13 @@ const glm::vec3 CUBE_FACES[6][4] = {
 };
 
 void GLAPIENTRY MessageCallback(
-    GLenum source,
+    __attribute__((unused)) GLenum source,
     GLenum type,
-    GLuint id,
+    __attribute__((unused)) GLuint id,
     GLenum severity,
-    GLsizei length,
+    __attribute__((unused)) GLsizei length,
     const GLchar* message,
-    const void* userParam )
+    __attribute__((unused)) const void* userParam)
 {
     fprintf(
         stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
@@ -103,10 +104,7 @@ void GLAPIENTRY MessageCallback(
     );
 }
 
-/*
- * Basic Initialization
- */
-int RenderSystem::Initialize()
+int Renderer::initialize()
 {
     // Initialize rendering context
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -141,8 +139,8 @@ int RenderSystem::Initialize()
 
     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-    InitShaders();
-    InitGeometry();
+    initShaders();
+    initGeometry();
     // InitTextures();
 
     return 0;
@@ -151,7 +149,7 @@ int RenderSystem::Initialize()
 /*
  * Initialize Shaders
  */
-int RenderSystem::InitShaders()
+int Renderer::initShaders()
 {
     GLint status;
     char err_buf[512];
@@ -159,7 +157,8 @@ int RenderSystem::InitShaders()
     glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
 
-    std::ifstream vert_in("/home/rmaccrimmon/projects/mcclone/src/solid_color_vert.glsl");
+    std::string proj_root = PROJECT_ROOT;
+    std::ifstream vert_in(proj_root + "/src/rendering/shaders/solid_color_vert.glsl");
     std::string vert_shader_src;
 
     vert_in.seekg(0, std::ios::end);   
@@ -186,7 +185,7 @@ int RenderSystem::InitShaders()
         return 1;
     }
 
-    std::ifstream frag_in("/home/rmaccrimmon/projects/mcclone/src/solid_color_frag.glsl");
+    std::ifstream frag_in(proj_root + "/src/rendering/shaders/solid_color_frag.glsl");
     std::string frag_shader_src;
 
     frag_in.seekg(0, std::ios::end);   
@@ -226,7 +225,7 @@ int RenderSystem::InitShaders()
 /*
  * Initialize Geometry
  */
-int RenderSystem::InitGeometry()
+int Renderer::initGeometry()
 {
     // Populate vertex buffer
     glGenBuffers(1, &m_vbo);
@@ -246,14 +245,14 @@ int RenderSystem::InitGeometry()
 }
 
 
-RenderSystem::RenderSystem(EntityAdmin *admin, SDL_Window* window) {
+Renderer::Renderer(EntityAdmin *admin, SDL_Window* window) {
     m_admin = admin;
     m_window = window;
     m_vert_buff = new GLfloat[VERT_BUFF_SIZE];
     m_index_buff = new GLint[INDEX_BUFF_SIZE];
 }
 
-RenderSystem::~RenderSystem() {
+Renderer::~Renderer() {
     glUseProgram(0);
     glDisableVertexAttribArray(0);
     glDetachShader(m_shader_prog, m_vert_shader);
@@ -272,7 +271,7 @@ RenderSystem::~RenderSystem() {
     delete[] m_index_buff;
 }
 
-bool check_neighbour(WorldChunk *chunk, glm::vec3 position, int face) {
+bool checkNeighbour(WorldChunk *chunk, glm::vec3 position, int face) {
     auto n = position + FACE_NORMALS[face];
     return (n.x >= 0 && n.x < WorldChunk::SPAN_X)
 	&& (n.y >= 0 && n.y < WorldChunk::SPAN_Y)
@@ -280,7 +279,7 @@ bool check_neighbour(WorldChunk *chunk, glm::vec3 position, int face) {
 	&& chunk->m_blocks[(int)n.x][(int)n.y][(int)n.z];
 }
 
-void RenderSystem::RenderChunk(WorldChunk *chunk) {
+void Renderer::renderChunk(WorldChunk *chunk) {
     int i = 0;
     int k = 0;
     
@@ -292,7 +291,7 @@ void RenderSystem::RenderChunk(WorldChunk *chunk) {
 		    glm::mat4 translate = glm::translate(glm::mat4(1), position);
 		    
 		    for (int q = 0; q < 6; q++) {
-			if (!check_neighbour(chunk, position, q)) {
+			if (!checkNeighbour(chunk, position, q)) {
 			    m_index_buff[k++] = i/3;
 			    m_index_buff[k++] = i/3 + 3;
 			    m_index_buff[k++] = i/3 + 1;
@@ -343,6 +342,6 @@ void RenderSystem::RenderChunk(WorldChunk *chunk) {
     
 }
 
-void RenderSystem::Tick() {
+void Renderer::tick() {
     
 }

@@ -5,7 +5,7 @@
 
 struct TransformComponent
 {
-    static const int TAG = 1 << 1;
+    static const int TAG = 1 << __COUNTER__;
     glm::mat4x4 m_matrix;
 };
 

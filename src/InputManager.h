@@ -14,10 +14,10 @@ public:
 	UP,
 	DOWN
     };
+
+    void update();
     
     InputManager();
-    ~InputManager();
-
     bool isPressed(Key);
 
 private:

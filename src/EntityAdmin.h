@@ -31,7 +31,8 @@ public:
     }
 
     template<class T>
-    T* getComponent(int entity_id) {
+    T* getComponent(int entity_id)
+    {
 	for (auto i: m_entity_map[entity_id].m_components) {
 	    if (std::get_if<T>(&m_comp_pool[i].m_variant)) {
 		return &std::get<T>(m_comp_pool[i].m_variant);
@@ -41,7 +42,8 @@ public:
     }
     
 // private:
-    class Entity {
+    class Entity
+    {
     public:
 	int m_tag;
 	std::vector<int> m_components;
