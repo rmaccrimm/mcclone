@@ -15,10 +15,12 @@
 #include "InputManager.h"
 #include "WorldChunk.h"
 #include "EntityAdmin.h"
+#include "CameraMovementSystem.h"
 #include "components/Component.h"
 
 #include <unordered_map>
 #include <ranges>
+
 
 /*
  * Program entry point
@@ -45,22 +47,26 @@ int main()
     }
 
     
-    Renderer render(window);
+    Renderer renderer(window);
     InputManager input_mgr(window);
-    EntityAdmin admin(&renderer);
-    admin.createEntity<CameraComponent, TransformComponent, PlayerControlComponent>();
+    EntityAdmin admin(&input_mgr, &renderer);
+    int camera_id = admin.createEntity<CameraComponent, TransformComponent, PlayerControlComponent>();
 
+    auto transform = admin.getComponent<TransformComponent>(camera_id);
+    transform->m_position = glm::vec3(16, 15.0, -10.0);
+    transform->m_forward = glm::vec3(16.0, 10.0, 16.0) - transform->m_position;
+
+    CameraMovementSystem cam_system(&admin);
     // return 0;
     
-    if (render.initialize()) {
+    if (renderer.initialize()) {
         return 1;
     }
 
     WorldChunk chunk;
-
+    	    
     printf("Running...\n");
-    render.renderChunk(&chunk);
-
+    renderer.renderChunk(&chunk);
     
     for (should_run = 1; should_run; ) {
         SDL_Event event;
@@ -69,7 +75,12 @@ int main()
                 should_run = 0;
                 break;
             }
+	    else if (event.type == SDL_KEYUP || event.type == SDL_KEYDOWN) {
+		input_mgr.update(event);
+	    }
         }
+	cam_system.tick();
+	renderer.tick();
     }
 
     printf("Exiting...\n");

@@ -3,11 +3,9 @@
 
 #include <cstdint>
 #include <map>
+#include <SDL2/SDL.h>
 
-class SDL_Window;
-class SDL_Event;
-
-enum class Key {
+enum Key {
     LEFT,
     RIGHT,
     FORWARD,
@@ -20,9 +18,8 @@ enum class Key {
 class InputManager
 {
 public:
-    void update(SDL_Event &event);
-    
     InputManager(SDL_Window* window);
+    void update(SDL_Event &event);
     bool isPressed(Key);
 
 private:

@@ -42,13 +42,14 @@ const glm::vec3 FACE_NORMALS[6]  = {
     // BOTTOM
     glm::vec3(0, -1, 0),
     // TOP
-    glm::vec3(0, -1, 0),
+    glm::vec3(0, 1, 0),
     // FRONT
-    glm::vec3(0, -1, 0),
+    glm::vec3(0, 0, -1),
     // BACK
-    glm::vec3(0, 1, 0)
+    glm::vec3(0, 0, 1)
 };
 
+// TODO store/use the elements in a constant array as well
 const glm::vec3 CUBE_FACES[6][4] = {
     {   // LEFT
 	glm::vec3(0, 0, 0),                             
@@ -75,15 +76,15 @@ const glm::vec3 CUBE_FACES[6][4] = {
 	glm::vec3(0, 1, 1),
     },
     {   // FRONT
-	glm::vec3(0, 0, 0),
-	glm::vec3(0, 1, 0),
 	glm::vec3(1, 0, 0),
+	glm::vec3(0, 0, 0),
 	glm::vec3(1, 1, 0),
+	glm::vec3(0, 1, 0),
     },
     {   // BACK
 	glm::vec3(0, 0, 1),
-	glm::vec3(0, 1, 1),
 	glm::vec3(1, 0, 1),
+	glm::vec3(0, 1, 1),
 	glm::vec3(1, 1, 1) 
     }
 };
@@ -136,7 +137,8 @@ int Renderer::initialize()
 
     glEnable( GL_DEBUG_OUTPUT );
     glDebugMessageCallback( MessageCallback, 0 );
-
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CW);
     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     initShaders();
@@ -224,12 +226,12 @@ int Renderer::initShaders()
  */
 int Renderer::initGeometry()
 {
-    // Populate vertex buffer
+    // Allocate vertex buffer
     glGenBuffers(1, &m_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBufferData(GL_ARRAY_BUFFER, VERT_BUFF_SIZE, NULL, GL_STREAM_DRAW);
 
-    // Populate element buffer
+    // Allocate element buffer
     glGenBuffers(1, &m_ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFF_SIZE, NULL, GL_STREAM_DRAW);
@@ -246,6 +248,9 @@ Renderer::Renderer(SDL_Window* window) {
     m_window = window;
     m_vert_buff = new GLfloat[VERT_BUFF_SIZE];
     m_index_buff = new GLint[INDEX_BUFF_SIZE];
+    m_view_matrix = glm::lookAt(glm::vec3(-20.0f, 20.0f, -4.0f),
+				glm::vec3(16.0f, 5.0f, 16.0f),
+				glm::vec3(0.0f, 1.0f, 0.0));
 }
 
 Renderer::~Renderer() {
@@ -307,8 +312,6 @@ void Renderer::renderChunk(WorldChunk *chunk) {
             }
         }
     }
-    
-
     glBufferSubData(GL_ARRAY_BUFFER,
 		    0,
 		    (i) * sizeof(GLfloat) ,
@@ -317,60 +320,26 @@ void Renderer::renderChunk(WorldChunk *chunk) {
 		    0,
 		    (k) * sizeof(GLint),
 		    m_index_buff);
+    m_num_elements = k;
+}
 
+void Renderer::setViewMatrix(glm::mat4 view_matrix) {
+    m_view_matrix = view_matrix;
+}
+
+void Renderer::tick() {
     glUseProgram(m_shader_prog);
 
     GLint view_loc = glGetUniformLocation(m_shader_prog, "View");
     GLint proj_loc = glGetUniformLocation(m_shader_prog, "Projection");
 
     auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 100.0f);
-    auto view =
-	glm::lookAt(glm::vec3(-20.0f, 20.0f, -4.0f), glm::vec3(16.0f, 5.0f, 16.0f),
-		    glm::vec3(0.0f, 1.0f, 0.0));
 
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
-    glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
-
+    glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    glDrawElements(GL_TRIANGLES, k, GL_UNSIGNED_INT, NULL);
-    SDL_GL_SwapWindow(m_window);
     
-}
-
-void Renderer::tick() {
-    // if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
-    //     auto key_code = event.key.keysym.sym;
-    //     if (event.type == SDL_KEYDOWN) {
-    // 	    switch (key_code) 
-    //             {
-    //             case SDLK_w:
-    //                 // pause = true;
-    //                 break;
-    //             case SDLK_1:
-    //             case SDLK_2:
-    //             case SDLK_3:
-    //             case SDLK_4:
-    //             case SDLK_5:
-    //             case SDLK_6:
-    //             case SDLK_7:
-    //             case SDLK_8:
-    //             case SDLK_9:
-    //                 // current_palette = key_code - SDLK_1;
-    //                 break;
-    //             case SDLK_BACKQUOTE:
-    //                 invert_colors = !invert_colors;
-    //             };
-    // 	    key_pressed[key_code] = !key_pressed[key_code];
-    // 	    joypad->press_key(joy_key);
-    //         }
-    //     }
-    //     else {
-    //         if (key_pressed[key_code]) {
-    //             joypad->release_key(joy_key);
-    //             key_pressed[key_code] = !key_pressed[key_code];
-    //         }
-    //     }
-    // }
-    // draw = false;
+    glDrawElements(GL_TRIANGLES, m_num_elements, GL_UNSIGNED_INT, NULL);
+    SDL_GL_SwapWindow(m_window);
 }

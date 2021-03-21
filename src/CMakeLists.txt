@@ -19,6 +19,8 @@ add_library(
 	rendering/Renderer.cpp
 	WorldChunk.cpp
 	EntityAdmin.cpp
+	InputManager.cpp
+	CameraMovementSystem.cpp
 )
 add_executable(
 	main

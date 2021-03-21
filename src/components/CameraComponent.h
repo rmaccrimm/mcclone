@@ -2,6 +2,7 @@
 #define _CAMERACOMPONENT_H_
 
 #include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 
 struct CameraComponent {
     static const int TAG = 1 << __COUNTER__;

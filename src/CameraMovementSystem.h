@@ -7,9 +7,7 @@ class CameraMovementSystem
 {
 public:
     CameraMovementSystem(EntityAdmin *admin);
-    ~CameraMovementSystem();
-
-    void Tick();
+    void tick();
     
 private:
     EntityAdmin* m_admin;

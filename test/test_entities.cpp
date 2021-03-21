@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 #include <set>
 
 #include "EntityAdmin.h"
@@ -8,7 +9,7 @@
 
 TEST_CASE( "Create/Get entity components", "[EntityAdmin]" )
 {
-    EntityAdmin admin;
+    EntityAdmin admin(nullptr, nullptr);
     int id = admin.createEntity<TransformComponent, CameraComponent>();
 
     auto t = admin.getComponent<TransformComponent>(id);
@@ -16,7 +17,7 @@ TEST_CASE( "Create/Get entity components", "[EntityAdmin]" )
     auto p = admin.getComponent<PlayerControlComponent>(id);
 
     // Default to identiy matrices
-    REQUIRE( t->m_matrix == glm::mat4(1.0) );
+    REQUIRE( t->m_position == glm::vec3() );
     REQUIRE( c->m_projection == glm::mat4(1.0) );
     // Entity has no player control component
     REQUIRE( p == nullptr );
@@ -24,7 +25,7 @@ TEST_CASE( "Create/Get entity components", "[EntityAdmin]" )
 
 TEST_CASE("Iterate over sets of components", "[EntityAdmin]")
 {
-    EntityAdmin admin;
+    EntityAdmin admin(nullptr, nullptr);
     int id0 = admin.createEntity<TransformComponent, CameraComponent, PlayerControlComponent>();
     int id1 = admin.createEntity<TransformComponent, CameraComponent>();
     int id2 = admin.createEntity<TransformComponent, CameraComponent>();

@@ -1,22 +1,42 @@
 [
 {
   "directory": "/home/rmaccrimmon/projects/mcclone/debug/src",
-  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++20 -o CMakeFiles/main.dir/main.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/main.cpp",
-  "file": "/home/rmaccrimmon/projects/mcclone/src/main.cpp"
-},
-{
-  "directory": "/home/rmaccrimmon/projects/mcclone/debug/src",
-  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++20 -o CMakeFiles/main.dir/rendering/Renderer.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/rendering/Renderer.cpp",
+  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++20 -o CMakeFiles/lib.dir/rendering/Renderer.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/rendering/Renderer.cpp",
   "file": "/home/rmaccrimmon/projects/mcclone/src/rendering/Renderer.cpp"
 },
 {
   "directory": "/home/rmaccrimmon/projects/mcclone/debug/src",
-  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++20 -o CMakeFiles/main.dir/WorldChunk.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/WorldChunk.cpp",
+  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++20 -o CMakeFiles/lib.dir/WorldChunk.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/WorldChunk.cpp",
   "file": "/home/rmaccrimmon/projects/mcclone/src/WorldChunk.cpp"
 },
 {
   "directory": "/home/rmaccrimmon/projects/mcclone/debug/src",
-  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++20 -o CMakeFiles/main.dir/EntityAdmin.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/EntityAdmin.cpp",
+  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++20 -o CMakeFiles/lib.dir/EntityAdmin.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/EntityAdmin.cpp",
   "file": "/home/rmaccrimmon/projects/mcclone/src/EntityAdmin.cpp"
+},
+{
+  "directory": "/home/rmaccrimmon/projects/mcclone/debug/src",
+  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++20 -o CMakeFiles/lib.dir/InputManager.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/InputManager.cpp",
+  "file": "/home/rmaccrimmon/projects/mcclone/src/InputManager.cpp"
+},
+{
+  "directory": "/home/rmaccrimmon/projects/mcclone/debug/src",
+  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++20 -o CMakeFiles/lib.dir/CameraMovementSystem.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/CameraMovementSystem.cpp",
+  "file": "/home/rmaccrimmon/projects/mcclone/src/CameraMovementSystem.cpp"
+},
+{
+  "directory": "/home/rmaccrimmon/projects/mcclone/debug/src",
+  "command": "/usr/bin/c++ -DPROJECT_ROOT=\\\"/home/rmaccrimmon/projects/mcclone\\\" -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++20 -o CMakeFiles/main.dir/main.cpp.o -c /home/rmaccrimmon/projects/mcclone/src/main.cpp",
+  "file": "/home/rmaccrimmon/projects/mcclone/src/main.cpp"
+},
+{
+  "directory": "/home/rmaccrimmon/projects/mcclone/debug/test",
+  "command": "/usr/bin/c++  -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++20 -o CMakeFiles/tests.dir/tests.cpp.o -c /home/rmaccrimmon/projects/mcclone/test/tests.cpp",
+  "file": "/home/rmaccrimmon/projects/mcclone/test/tests.cpp"
+},
+{
+  "directory": "/home/rmaccrimmon/projects/mcclone/debug/test",
+  "command": "/usr/bin/c++  -I/home/rmaccrimmon/projects/mcclone/src -I/home/rmaccrimmon/projects/mcclone/src/include -I/home/rmaccrimmon/projects/mcclone/src/rendering -I/home/rmaccrimmon/projects/mcclone/debug/generated -isystem /usr/include/SDL2 -g -fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \t-Wlogical-op -Wnull-dereference --std=c++20 -o CMakeFiles/tests.dir/test_entities.cpp.o -c /home/rmaccrimmon/projects/mcclone/test/test_entities.cpp",
+  "file": "/home/rmaccrimmon/projects/mcclone/test/test_entities.cpp"
 }
 ]

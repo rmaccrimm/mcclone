@@ -1,26 +1,14 @@
 #include "InputManager.h"
 #include <SDL2/SDL.h>
+#include <iostream>
 
 static const std::map<SDL_Keycode, Key> key_map = {
-    {SDLK_LEFT, Key::LEFT},
-    {SDLK_RIGHT, Key::RIGHT},
-    {SDLK_UP, Key::UP},
-    {SDLK_DOWN, Key::DOWN},
-    // {SDLK_a, Joypad::A},
-    // {SDLK_b, Joypad::B},
-    // {SDLK_p, Joypad::NONE},
-    // {SDLK_RETURN, Joypad::START},
-    // {SDLK_BACKSPACE, Joypad::SELECT},
-    // {SDLK_1, Joypad::NONE},
-    // {SDLK_2, Joypad::NONE},
-    // {SDLK_3, Joypad::NONE},
-    // {SDLK_4, Joypad::NONE},
-    // {SDLK_5, Joypad::NONE},
-    // {SDLK_6, Joypad::NONE},
-    // {SDLK_7, Joypad::NONE},
-    // {SDLK_8, Joypad::NONE},
-    // {SDLK_9, Joypad::NONE},
-    // {SDLK_BACKQUOTE, Joypad::NONE}
+    {SDLK_a, LEFT},
+    {SDLK_d, RIGHT},
+    {SDLK_w, FORWARD},
+    {SDLK_s, BACK},
+    {SDLK_LSHIFT, DOWN},
+    {SDLK_SPACE, UP}
 };
 
 InputManager::InputManager(SDL_Window *window)
@@ -33,18 +21,24 @@ void InputManager::update(SDL_Event &event)
         if (key_map.find(key_code) == key_map.end()) {
             return;
         }
-        int joy_key = key_map.at(key_code);
+        int k = key_map.at(key_code);
         
         if (event.type == SDL_KEYDOWN) {
-            if (!m_key_pressed[key_code]) {
-                key_pressed[key_code] = !key_pressed[key_code];
+            if (!m_key_pressed[k]) {
+		std::cout << "Pressed key " << k << std::endl;
+                m_key_pressed[k] = !m_key_pressed[k];
             }
         }
         else {
-          if (key_pressed[key_code]) {
-            key_pressed[key_code] = !key_pressed[key_code];
+          if (m_key_pressed[k]) {
+	      std::cout << "Released key " << k << std::endl;
+	      m_key_pressed[k] = !m_key_pressed[k];
           }
         }
     }
-    draw = false;
+}
+
+bool InputManager::isPressed(Key k)
+{
+    return m_key_pressed[k];
 }
