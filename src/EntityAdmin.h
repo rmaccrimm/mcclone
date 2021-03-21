@@ -7,11 +7,13 @@
 
 #include "components/Component.h"
 
+class InputManager;
+class Renderer;
 
 class EntityAdmin
 {
 public:
-    EntityAdmin();  
+    EntityAdmin(InputManager *input_mgr, Renderer *renderer);
 
     /* Creates a new entity with the given list of component types. All components are 
        default-initialized and can only be modified after creation with getComponent
@@ -53,6 +55,9 @@ public:
 	return m_entity_map | std::views::filter(tag_filter) | std::views::keys;
     }
 
+    InputManager* getInputManager();
+    Renderer* getRenderer();
+
 private:
     class Entity
     {
@@ -72,6 +77,11 @@ private:
     // Will need a more proper pool allocator once entity deletion is added
     int m_comp_counter;
     Component m_comp_pool[100];
+
+    // TODO - should these be owned/created by EntityManager or passed in?
+    // Alternatively, do they need to be here? Could systems just store a pointer?
+    InputManager* m_input_mgr;
+    Renderer* m_renderer;
 };
 
 #endif

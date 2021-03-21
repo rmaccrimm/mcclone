@@ -242,8 +242,7 @@ int Renderer::initGeometry()
 }
 
 
-Renderer::Renderer(EntityAdmin *admin, SDL_Window* window) {
-    m_admin = admin;
+Renderer::Renderer(SDL_Window* window) {
     m_window = window;
     m_vert_buff = new GLfloat[VERT_BUFF_SIZE];
     m_index_buff = new GLint[INDEX_BUFF_SIZE];

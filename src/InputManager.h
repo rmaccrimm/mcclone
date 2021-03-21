@@ -2,27 +2,32 @@
 #define _INPUTMANAGER_H_
 
 #include <cstdint>
+#include <map>
 
+class SDL_Window;
+class SDL_Event;
+
+enum class Key {
+    LEFT,
+    RIGHT,
+    FORWARD,
+    BACK,
+    UP,
+    DOWN
+};
+
+// Will probably split into a component/system later
 class InputManager
 {
 public:
-    enum Key {
-	LEFT,
-	RIGHT,
-	FORWARD,
-	BACK,
-	UP,
-	DOWN
-    };
-
-    void update();
+    void update(SDL_Event &event);
     
-    InputManager();
+    InputManager(SDL_Window* window);
     bool isPressed(Key);
 
 private:
-    uint32_t m_button_state;
+    bool m_key_pressed[6];
+    SDL_Window *m_window;
 };
-
 
 #endif /* _INPUTMANAGER_H_ */

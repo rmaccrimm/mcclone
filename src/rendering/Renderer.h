@@ -5,14 +5,12 @@
 #include <GL/glew.h>
 
 
-class EntityAdmin;
 class WorldChunk;
-
 
 class Renderer {
     
 public:
-    Renderer(EntityAdmin *admin, SDL_Window *window);
+    Renderer(SDL_Window *window);
     ~Renderer();
 
     int initialize();
@@ -25,11 +23,6 @@ private:
     int initGeometry();
     int initTextures();
 
-
-    // void RenderEntities();
-    
-    EntityAdmin *m_admin;
-    
     int m_SCREEN_W;
     int m_SCREEN_H;
     

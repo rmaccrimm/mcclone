@@ -12,6 +12,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "rendering/Renderer.h"
+#include "InputManager.h"
 #include "WorldChunk.h"
 #include "EntityAdmin.h"
 #include "components/Component.h"
@@ -43,13 +44,13 @@ int main()
 	return 1;
     }
 
-    EntityAdmin admin;
+    
+    Renderer render(window);
+    InputManager input_mgr(window);
+    EntityAdmin admin(&renderer);
     admin.createEntity<CameraComponent, TransformComponent, PlayerControlComponent>();
 
     // return 0;
-
-
-    Renderer render(&admin, window);
     
     if (render.initialize()) {
         return 1;
