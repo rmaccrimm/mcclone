@@ -9,11 +9,12 @@
 
 class InputManager;
 class Renderer;
+class ChunkManager;
 
 class EntityAdmin
 {
 public:
-    EntityAdmin(InputManager *input_mgr, Renderer *renderer);
+    EntityAdmin(InputManager *input_mgr, Renderer *renderer, ChunkManager *chunk_mgr);
     
     /* Creates a new entity with the given list of component types. All components are 
        default-constructed and can only be modified after creation with getComponent
@@ -36,8 +37,9 @@ public:
 
     InputManager* getInputManager();
     Renderer* getRenderer();
+    ChunkManager* getChunkManager();
 
-private:
+// private:
     class Entity
     {
     public:
@@ -61,6 +63,7 @@ private:
     // Alternatively, do they need to be here? Could systems just store a pointer?
     InputManager* m_input_mgr;
     Renderer* m_renderer;
+    ChunkManager *m_chunk_mgr;
 };
 
 #include "EntityAdmin.tpp"

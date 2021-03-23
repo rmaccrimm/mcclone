@@ -1,5 +1,5 @@
-#ifndef _RENDERSYSTEM_H_
-#define _RENDERSYSTEM_H_
+#ifndef _RENDERER_H_
+#define _RENDERER_H_
 
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
@@ -14,7 +14,7 @@ public:
     ~Renderer();
 
     int initialize();
-    void tick();
+    void draw();
     void renderChunk(WorldChunk* chunk);
     void setViewMatrix(glm::mat4 view_matrix);
 
@@ -38,4 +38,4 @@ private:
     glm::mat4 m_view_matrix;
 };
 
-#endif /* _RENDERSYSTEM_H_ */
+#endif /* _RENDERER_H_ */

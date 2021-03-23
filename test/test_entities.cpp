@@ -9,7 +9,7 @@
 
 TEST_CASE( "Create/Get entity components", "[EntityAdmin]" )
 {
-    EntityAdmin admin(nullptr, nullptr);
+    EntityAdmin admin(nullptr, nullptr, nullptr);
     int id = admin.createEntity<TransformComponent, CameraComponent>();
 
     auto t = admin.getComponent<TransformComponent>(id);
@@ -25,7 +25,7 @@ TEST_CASE( "Create/Get entity components", "[EntityAdmin]" )
 
 TEST_CASE("Iterate over sets of components", "[EntityAdmin]")
 {
-    EntityAdmin admin(nullptr, nullptr);
+    EntityAdmin admin(nullptr, nullptr, nullptr);
     int id0 = admin.createEntity<TransformComponent, CameraComponent, PlayerControlComponent>();
     int id1 = admin.createEntity<TransformComponent, CameraComponent>();
     int id2 = admin.createEntity<TransformComponent, CameraComponent>();

@@ -18,6 +18,7 @@ add_library(
 	lib
 	rendering/Renderer.cpp
 	WorldChunk.cpp
+	ChunkManager.cpp
 	EntityAdmin.cpp
 	InputManager.cpp
 	CameraMovementSystem.cpp

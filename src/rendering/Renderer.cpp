@@ -327,7 +327,7 @@ void Renderer::setViewMatrix(glm::mat4 view_matrix) {
     m_view_matrix = view_matrix;
 }
 
-void Renderer::tick() {
+void Renderer::draw() {
     glUseProgram(m_shader_prog);
 
     GLint view_loc = glGetUniformLocation(m_shader_prog, "View");

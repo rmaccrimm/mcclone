@@ -12,7 +12,9 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "rendering/Renderer.h"
+#include "rendering/RenderSystem.h"
 #include "InputManager.h"
+#include "ChunkManager.h"
 #include "WorldChunk.h"
 #include "EntityAdmin.h"
 #include "CameraMovementSystem.h"
@@ -51,7 +53,7 @@ int main()
     
     Renderer renderer(window);
     InputManager input_mgr(window);
-    EntityAdmin admin(&input_mgr, &renderer);
+    EntityAdmin admin(&input_mgr, &renderer, nullptr);
     int camera_id = admin.createEntity<CameraComponent, TransformComponent, PlayerControlComponent>();
 
     auto transform = admin.getComponent<TransformComponent>(camera_id);
@@ -59,6 +61,7 @@ int main()
     transform->m_forward = glm::vec3(16.0, 10.0, 16.0) - transform->m_position;
 
     CameraMovementSystem cam_system(&admin);
+    // RenderSystem render_system(&admin);
     // return 0;
     
     if (renderer.initialize()) {
@@ -69,6 +72,7 @@ int main()
     	    
     printf("Running...\n");
     renderer.renderChunk(&chunk);
+    // render_system.tick();
 
     using namespace std::chrono;
 	
@@ -88,7 +92,7 @@ int main()
 	    input_mgr.update(event);
         }
 	cam_system.tick();
-	renderer.tick();
+	renderer.draw();
 
 	auto t_draw = steady_clock::now();
 	dt = duration_cast<duration<double>>(t_draw - t);
