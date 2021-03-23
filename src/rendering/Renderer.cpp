@@ -19,6 +19,7 @@
 
 #include "Renderer.h"
 #include "EntityAdmin.h"
+#include "ChunkManager.h"
 #include "WorldChunk.h"
 #include "config.h"
 
@@ -282,33 +283,37 @@ bool checkNeighbour(WorldChunk *chunk, glm::vec3 position, int face) {
 	&& chunk->m_blocks[(int)n.x][(int)n.y][(int)n.z];
 }
 
-void Renderer::renderChunk(WorldChunk *chunk) {
+void Renderer::renderChunks(ChunkManager *chunk_mgr) {
     m_index_iter = m_index_buff.begin();
     m_vert_iter = m_vert_buff.begin();
     std::vector<int> indices(6, 0);
     std::vector<glm::vec3> face(4);
-    
-    for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
-	for (int x = 0; x < WorldChunk::SPAN_X; x++) {
-	    for (int z = 0; z < WorldChunk::SPAN_Z; z++) {
-		if (chunk->m_blocks[x][y][z]) {
-		    glm::vec3 position = glm::vec3(x, y, z);
-		    glm::mat4 translate = glm::translate(glm::mat4(1), position);
+    for (auto const &chunk: chunk_mgr->m_chunks) {
+	for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
+	    for (int x = 0; x < WorldChunk::SPAN_X; x++) {
+		for (int z = 0; z < WorldChunk::SPAN_Z; z++) {
+		    if (chunk->m_blocks[x][y][z]) {
+			glm::vec3 chunk_position = glm::vec3(x, y, z);
+
+			glm::vec3 world_position = chunk_position
+			    + glm::vec3(chunk->m_position.x, 0, chunk->m_position.z);
+			glm::mat4 translate = glm::translate(glm::mat4(1), world_position);
 		    
-		    for (int q = 0; q < 6; q++) {
-			if (!checkNeighbour(chunk, position, q)) {
-			    indices = {0, 3, 1, 0, 2, 3};
-			    for (int j = 0; j < 4; j++) {
-				face[j] = glm::vec3(translate * glm::vec4(CUBE_FACES[q][j], 1));
+			for (int q = 0; q < 6; q++) {
+			    if (!checkNeighbour(chunk, chunk_position, q)) {
+				indices = {0, 3, 1, 0, 2, 3};
+				for (int j = 0; j < 4; j++) {
+				    face[j] = glm::vec3(translate
+							* glm::vec4(CUBE_FACES[q][j], 1));
+				}
+				copyVertexData(face, indices);
 			    }
-			    copyVertexData(face, indices);
 			}
 		    }
-                }
-            }
-        }
+		}
+	    }
+	}
     }
-
 }
 
 void Renderer::clearBuffers()
@@ -353,7 +358,7 @@ void Renderer::draw() {
     GLint view_loc = glGetUniformLocation(m_shader_prog, "View");
     GLint proj_loc = glGetUniformLocation(m_shader_prog, "Projection");
 
-    auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 100.0f);
+    auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
 
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));

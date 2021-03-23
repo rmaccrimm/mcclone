@@ -6,7 +6,7 @@
 #include <glm/mat4x4.hpp>
 #include <vector>
 
-class WorldChunk;
+class ChunkManager;
 
 class Renderer {
     
@@ -20,7 +20,7 @@ public:
 
     void clearBuffers();
     
-    void renderChunk(WorldChunk* chunk);
+    void renderChunks(ChunkManager* chunk);
     
     void setViewMatrix(glm::mat4 view_matrix);
 

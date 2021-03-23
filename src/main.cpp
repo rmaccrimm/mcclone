@@ -68,10 +68,10 @@ int main()
         return 1;
     }
 
-    WorldChunk chunk;
+    ChunkManager chunk_mgr;
     	    
     printf("Running...\n");
-    renderer.renderChunk(&chunk);
+    renderer.renderChunks(&chunk_mgr);
     // render_system.tick();
 
     using namespace std::chrono;
