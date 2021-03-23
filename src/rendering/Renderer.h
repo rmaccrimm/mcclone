@@ -15,9 +15,17 @@ public:
     ~Renderer();
 
     int initialize();
+
     void draw();
+
+    void clearBuffers();
+    
     void renderChunk(WorldChunk* chunk);
+    
     void setViewMatrix(glm::mat4 view_matrix);
+
+    void copyVertexData(const std::vector<glm::vec3> &verts,
+			const std::vector<int> &inds);
 
 private:
     int cleanup();
@@ -27,7 +35,7 @@ private:
 
     int m_SCREEN_W;
     int m_SCREEN_H;
-    int m_num_elements;
+
     SDL_Window* m_window;
     SDL_GLContext m_context;
     GLuint m_vao, m_vbo, m_ebo, m_tex;

@@ -286,7 +286,7 @@ void Renderer::renderChunk(WorldChunk *chunk) {
     m_index_iter = m_index_buff.begin();
     m_vert_iter = m_vert_buff.begin();
     std::vector<int> indices(6, 0);
-    std::vector<glm::vec4> face(4);
+    std::vector<glm::vec3> face(4);
     
     for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
 	for (int x = 0; x < WorldChunk::SPAN_X; x++) {
@@ -297,25 +297,48 @@ void Renderer::renderChunk(WorldChunk *chunk) {
 		    
 		    for (int q = 0; q < 6; q++) {
 			if (!checkNeighbour(chunk, position, q)) {
-			    // copy indices
-			    int i = std::distance(m_vert_buff.begin(), m_vert_iter);
-			    indices = {i/3, i/3 + 3, i/3 + 1, i/3, i/3 + 2, i/3 + 3};
-			    m_index_iter = std::copy(indices.begin(), indices.end(), m_index_iter);
-			    // copy vertices
+			    indices = {0, 3, 1, 0, 2, 3};
 			    for (int j = 0; j < 4; j++) {
-				face[j] = translate * glm::vec4(CUBE_FACES[q][j], 1);
+				face[j] = glm::vec3(translate * glm::vec4(CUBE_FACES[q][j], 1));
 			    }
-			    for (auto it = face.begin(); it != face.end(); it++) {
-				*m_vert_iter++ = it->x;
-				*m_vert_iter++ = it->y;
-				*m_vert_iter++ = it->z;
-			    }
+			    copyVertexData(face, indices);
 			}
 		    }
                 }
             }
         }
     }
+
+}
+
+void Renderer::clearBuffers()
+{
+    m_vert_iter = m_vert_buff.begin();
+    m_index_iter = m_index_buff.begin();
+}
+
+void Renderer::copyVertexData(const std::vector<glm::vec3> &verts,
+			      const std::vector<int> &inds)
+{
+    int current_pos = std::distance(m_vert_buff.begin(), m_vert_iter);
+    const int vertex_size = 3;
+    for (auto it = inds.begin(); it != inds.end(); it++) {
+	*m_index_iter++ = *it + current_pos / vertex_size;
+    }
+    for (auto it = verts.begin(); it != verts.end(); it++) {
+	*m_vert_iter++ = it->x;
+	*m_vert_iter++ = it->y;
+	*m_vert_iter++ = it->z;
+    }
+}
+
+
+void Renderer::setViewMatrix(glm::mat4 view_matrix) {
+    m_view_matrix = view_matrix;
+}
+
+void Renderer::draw() {
+    // TODO - don't do this every frame, only for updated chunks
     glBufferSubData(GL_ARRAY_BUFFER,
 		    0,
 		    std::distance(m_vert_buff.begin(), m_vert_iter) * sizeof(GLfloat),
@@ -324,13 +347,7 @@ void Renderer::renderChunk(WorldChunk *chunk) {
 		    0,
 		    std::distance(m_index_buff.begin(), m_index_iter) * sizeof(GLint),
 		    m_index_buff.data());
-}
-
-void Renderer::setViewMatrix(glm::mat4 view_matrix) {
-    m_view_matrix = view_matrix;
-}
-
-void Renderer::draw() {
+    
     glUseProgram(m_shader_prog);
 
     GLint view_loc = glGetUniformLocation(m_shader_prog, "View");
