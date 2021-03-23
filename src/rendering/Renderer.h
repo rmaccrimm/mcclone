@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 #include <glm/mat4x4.hpp>
+#include <vector>
 
 class WorldChunk;
 
@@ -33,8 +34,12 @@ private:
     GLuint m_vert_shader;
     GLuint m_frag_shader;
     GLuint m_shader_prog;
-    GLfloat *m_vert_buff;
-    GLint *m_index_buff;
+    
+    std::vector<GLfloat> m_vert_buff;
+    std::vector<GLint> m_index_buff;
+    std::vector<GLfloat>::iterator m_vert_iter;
+    std::vector<GLint>::iterator m_index_iter;
+    
     glm::mat4 m_view_matrix;
 };
 

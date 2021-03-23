@@ -246,8 +246,10 @@ int Renderer::initGeometry()
 
 Renderer::Renderer(SDL_Window* window) {
     m_window = window;
-    m_vert_buff = new GLfloat[VERT_BUFF_SIZE];
-    m_index_buff = new GLint[INDEX_BUFF_SIZE];
+    m_vert_buff.resize(VERT_BUFF_SIZE);
+    m_vert_iter = m_vert_buff.begin();
+    m_index_buff.resize(INDEX_BUFF_SIZE);
+    m_index_iter = m_index_buff.begin();
     m_view_matrix = glm::lookAt(glm::vec3(-20.0f, 20.0f, -4.0f),
 				glm::vec3(16.0f, 5.0f, 16.0f),
 				glm::vec3(0.0f, 1.0f, 0.0));
@@ -268,8 +270,8 @@ Renderer::~Renderer() {
     SDL_GL_DeleteContext(m_context);
     SDL_DestroyWindow(m_window);
     SDL_Quit();
-    delete[] m_vert_buff;
-    delete[] m_index_buff;
+    // delete[] m_vert_buff;
+    // delete[] m_index_buff;
 }
 
 bool checkNeighbour(WorldChunk *chunk, glm::vec3 position, int face) {
@@ -281,8 +283,10 @@ bool checkNeighbour(WorldChunk *chunk, glm::vec3 position, int face) {
 }
 
 void Renderer::renderChunk(WorldChunk *chunk) {
-    int i = 0;
-    int k = 0;
+    m_index_iter = m_index_buff.begin();
+    m_vert_iter = m_vert_buff.begin();
+    std::vector<int> indices(6, 0);
+    std::vector<glm::vec4> face(4);
     
     for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
 	for (int x = 0; x < WorldChunk::SPAN_X; x++) {
@@ -293,19 +297,19 @@ void Renderer::renderChunk(WorldChunk *chunk) {
 		    
 		    for (int q = 0; q < 6; q++) {
 			if (!checkNeighbour(chunk, position, q)) {
-			    m_index_buff[k++] = i/3;
-			    m_index_buff[k++] = i/3 + 3;
-			    m_index_buff[k++] = i/3 + 1;
-			    m_index_buff[k++] = i/3;
-			    m_index_buff[k++] = i/3 + 2;
-			    m_index_buff[k++] = i/3 + 3;
+			    // copy indices
+			    int i = std::distance(m_vert_buff.begin(), m_vert_iter);
+			    indices = {i/3, i/3 + 3, i/3 + 1, i/3, i/3 + 2, i/3 + 3};
+			    m_index_iter = std::copy(indices.begin(), indices.end(), m_index_iter);
+			    // copy vertices
 			    for (int j = 0; j < 4; j++) {
-				glm::vec4 pos = translate * glm::vec4(CUBE_FACES[q][j], 1);
-				m_vert_buff[i++] = pos.x;
-				m_vert_buff[i++] = pos.y;
-				m_vert_buff[i++] = pos.z;
+				face[j] = translate * glm::vec4(CUBE_FACES[q][j], 1);
 			    }
-			    
+			    for (auto it = face.begin(); it != face.end(); it++) {
+				*m_vert_iter++ = it->x;
+				*m_vert_iter++ = it->y;
+				*m_vert_iter++ = it->z;
+			    }
 			}
 		    }
                 }
@@ -314,13 +318,12 @@ void Renderer::renderChunk(WorldChunk *chunk) {
     }
     glBufferSubData(GL_ARRAY_BUFFER,
 		    0,
-		    (i) * sizeof(GLfloat) ,
-		    m_vert_buff);
+		    std::distance(m_vert_buff.begin(), m_vert_iter) * sizeof(GLfloat),
+		    m_vert_buff.data());
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
 		    0,
-		    (k) * sizeof(GLint),
-		    m_index_buff);
-    m_num_elements = k;
+		    std::distance(m_index_buff.begin(), m_index_iter) * sizeof(GLint),
+		    m_index_buff.data());
 }
 
 void Renderer::setViewMatrix(glm::mat4 view_matrix) {
@@ -339,7 +342,8 @@ void Renderer::draw() {
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    
-    glDrawElements(GL_TRIANGLES, m_num_elements, GL_UNSIGNED_INT, NULL);
+
+    int n_elements = std::distance(m_index_buff.begin(), m_index_iter);
+    glDrawElements(GL_TRIANGLES, n_elements, GL_UNSIGNED_INT, NULL);
     SDL_GL_SwapWindow(m_window);
 }
