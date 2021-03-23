@@ -21,6 +21,10 @@ public:
     InputManager(SDL_Window* window);
     void update(SDL_Event &event);
     bool isPressed(Key);
+    void reset();
+
+    int m_mouse_delta_x = 0;
+    int m_mouse_delta_y = 0;
 
 private:
     bool m_key_pressed[6];

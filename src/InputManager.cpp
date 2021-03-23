@@ -14,6 +14,12 @@ static const std::map<SDL_Keycode, Key> key_map = {
 InputManager::InputManager(SDL_Window *window)
     : m_key_pressed{0}, m_window{window} {}
 
+void InputManager::reset()
+{
+    m_mouse_delta_x = 0;
+    m_mouse_delta_y = 0;
+}
+
 void InputManager::update(SDL_Event &event)
 {
     if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
@@ -35,6 +41,10 @@ void InputManager::update(SDL_Event &event)
 	      m_key_pressed[k] = !m_key_pressed[k];
           }
         }
+    }
+    if (event.type == SDL_MOUSEMOTION) {
+	m_mouse_delta_x += event.motion.xrel;
+	m_mouse_delta_y += event.motion.yrel;
     }
 }
 

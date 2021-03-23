@@ -20,6 +20,8 @@
 
 #include <unordered_map>
 #include <ranges>
+#include <chrono>
+#include <thread>
 
 
 /*
@@ -35,7 +37,7 @@ int main()
 	fprintf(stderr, "Failed to initialize SDL video\n");
 	return 1;
     }
-
+    SDL_SetRelativeMouseMode(SDL_TRUE);
     // Create main window
     SDL_Window *window = 
 	SDL_CreateWindow("SDL App", SDL_WINDOWPOS_CENTERED,
@@ -67,20 +69,34 @@ int main()
     	    
     printf("Running...\n");
     renderer.renderChunk(&chunk);
-    
+
+    using namespace std::chrono;
+	
+    double framerate = 60;
+    duration<double> T(1.0 / framerate);
+    duration<double> dt;
+    steady_clock::time_point t = steady_clock::now();
+
+    SDL_Event event;
     for (should_run = 1; should_run; ) {
-        SDL_Event event;
+	input_mgr.reset();
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE) {
                 should_run = 0;
                 break;
             }
-	    else if (event.type == SDL_KEYUP || event.type == SDL_KEYDOWN) {
-		input_mgr.update(event);
-	    }
+	    input_mgr.update(event);
         }
 	cam_system.tick();
 	renderer.tick();
+
+	auto t_draw = steady_clock::now();
+	dt = duration_cast<duration<double>>(t_draw - t);
+	if (dt < T) {
+	    milliseconds pause = duration_cast<milliseconds>(T - dt);
+	    std::this_thread::sleep_for(pause);
+	}
+	t = steady_clock::now();
     }
 
     printf("Exiting...\n");
