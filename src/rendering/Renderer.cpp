@@ -23,8 +23,8 @@
 #include "WorldChunk.h"
 #include "config.h"
 
-const int VERT_BUFF_SIZE = 500 * (1 << 20);
-const int INDEX_BUFF_SIZE = 500 * (1 << 20);
+const int VERT_BUFF_SIZE = 20 * (1 << 20);
+const int INDEX_BUFF_SIZE = 10 * (1 << 20);
 
 enum CUBE_FACE {
     LEFT = 0,
@@ -247,10 +247,10 @@ int Renderer::initGeometry()
 
 Renderer::Renderer(SDL_Window* window) {
     m_window = window;
-    m_vert_buff.resize(VERT_BUFF_SIZE);
-    m_vert_iter = m_vert_buff.begin();
-    m_index_buff.resize(INDEX_BUFF_SIZE);
-    m_index_iter = m_index_buff.begin();
+    m_vert_buff = std::unique_ptr<GLfloat[]>(new GLfloat[VERT_BUFF_SIZE]);
+    m_vert_buff_pos = 0;
+    m_index_buff = std::unique_ptr<GLint[]>(new GLint[INDEX_BUFF_SIZE]);
+    m_index_buff_pos = 0;
     m_view_matrix = glm::lookAt(glm::vec3(-20.0f, 20.0f, -4.0f),
 				glm::vec3(16.0f, 5.0f, 16.0f),
 				glm::vec3(0.0f, 1.0f, 0.0));
@@ -284,8 +284,8 @@ bool checkNeighbour(WorldChunk *chunk, glm::vec3 position, int face) {
 }
 
 void Renderer::renderChunks(ChunkManager *chunk_mgr) {
-    m_index_iter = m_index_buff.begin();
-    m_vert_iter = m_vert_buff.begin();
+    m_index_buff_pos = 0;
+    m_vert_buff_pos = 0;
     std::vector<int> indices(6, 0);
     std::vector<glm::vec3> face(4);
     for (auto const &chunk: chunk_mgr->m_chunks) {
@@ -318,22 +318,21 @@ void Renderer::renderChunks(ChunkManager *chunk_mgr) {
 
 void Renderer::clearBuffers()
 {
-    m_vert_iter = m_vert_buff.begin();
-    m_index_iter = m_index_buff.begin();
+    m_vert_buff_pos = 0;
+    m_index_buff_pos = 0;
 }
 
 void Renderer::copyVertexData(const std::vector<glm::vec3> &verts,
 			      const std::vector<int> &inds)
 {
-    int current_pos = std::distance(m_vert_buff.begin(), m_vert_iter);
     const int vertex_size = 3;
     for (auto it = inds.begin(); it != inds.end(); it++) {
-	*m_index_iter++ = *it + current_pos / vertex_size;
+	m_index_buff[m_index_buff_pos++] = *it + m_vert_buff_pos / vertex_size;
     }
     for (auto it = verts.begin(); it != verts.end(); it++) {
-	*m_vert_iter++ = it->x;
-	*m_vert_iter++ = it->y;
-	*m_vert_iter++ = it->z;
+	m_vert_buff[m_vert_buff_pos++] = it->x;
+	m_vert_buff[m_vert_buff_pos++] = it->y;
+	m_vert_buff[m_vert_buff_pos++] = it->z;
     }
 }
 
@@ -346,12 +345,12 @@ void Renderer::draw() {
     // TODO - don't do this every frame, only for updated chunks
     glBufferSubData(GL_ARRAY_BUFFER,
 		    0,
-		    std::distance(m_vert_buff.begin(), m_vert_iter) * sizeof(GLfloat),
-		    m_vert_buff.data());
+		    m_vert_buff_pos * sizeof(GLfloat),
+		    m_vert_buff.get());
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
 		    0,
-		    std::distance(m_index_buff.begin(), m_index_iter) * sizeof(GLint),
-		    m_index_buff.data());
+		    m_index_buff_pos * sizeof(GLint),
+		    m_index_buff.get());
     
     glUseProgram(m_shader_prog);
 
@@ -365,7 +364,6 @@ void Renderer::draw() {
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    int n_elements = std::distance(m_index_buff.begin(), m_index_iter);
-    glDrawElements(GL_TRIANGLES, n_elements, GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
     SDL_GL_SwapWindow(m_window);
 }

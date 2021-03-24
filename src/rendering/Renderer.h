@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 #include <glm/mat4x4.hpp>
+#include <memory>
 #include <vector>
 
 class ChunkManager;
@@ -43,10 +44,10 @@ private:
     GLuint m_frag_shader;
     GLuint m_shader_prog;
     
-    std::vector<GLfloat> m_vert_buff;
-    std::vector<GLint> m_index_buff;
-    std::vector<GLfloat>::iterator m_vert_iter;
-    std::vector<GLint>::iterator m_index_iter;
+    std::unique_ptr<GLfloat[]> m_vert_buff;
+    std::unique_ptr<GLint[]> m_index_buff;
+    int m_vert_buff_pos;
+    int m_index_buff_pos;
     
     glm::mat4 m_view_matrix;
 };
