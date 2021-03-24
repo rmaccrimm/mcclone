@@ -283,38 +283,7 @@ bool checkNeighbour(WorldChunk *chunk, glm::vec3 position, int face) {
 	&& chunk->m_blocks[(int)n.x][(int)n.y][(int)n.z];
 }
 
-void Renderer::renderChunks(ChunkManager *chunk_mgr) {
-    m_index_buff_pos = 0;
-    m_vert_buff_pos = 0;
-    std::vector<int> indices(6, 0);
-    std::vector<glm::vec3> face(4);
-    for (auto const &chunk: chunk_mgr->m_chunks) {
-	for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
-	    for (int x = 0; x < WorldChunk::SPAN_X; x++) {
-		for (int z = 0; z < WorldChunk::SPAN_Z; z++) {
-		    if (chunk->m_blocks[x][y][z]) {
-			glm::vec3 chunk_position = glm::vec3(x, y, z);
 
-			glm::vec3 world_position = chunk_position
-			    + glm::vec3(chunk->m_position.x, 0, chunk->m_position.z);
-			glm::mat4 translate = glm::translate(glm::mat4(1), world_position);
-		    
-			for (int q = 0; q < 6; q++) {
-			    if (!checkNeighbour(chunk, chunk_position, q)) {
-				indices = {0, 3, 1, 0, 2, 3};
-				for (int j = 0; j < 4; j++) {
-				    face[j] = glm::vec3(translate
-							* glm::vec4(CUBE_FACES[q][j], 1));
-				}
-				copyVertexData(face, indices);
-			    }
-			}
-		    }
-		}
-	    }
-	}
-    }
-}
 
 void Renderer::clearBuffers()
 {
@@ -367,3 +336,9 @@ void Renderer::draw() {
     glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
     SDL_GL_SwapWindow(m_window);
 }
+
+// void Renderer::reset()
+// {
+    // m_vert_buff_pos = 0;
+    // m_index_buff_pos = 0;
+// }

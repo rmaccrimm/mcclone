@@ -17,6 +17,7 @@ include_directories(
 add_library(
 	lib
 	rendering/Renderer.cpp
+	rendering/RenderSystem.cpp
 	WorldChunk.cpp
 	ChunkManager.cpp
 	EntityAdmin.cpp

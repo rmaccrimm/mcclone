@@ -85,33 +85,35 @@ RenderSystem::RenderSystem(EntityAdmin *admin) : m_admin{admin} {}
 
 void RenderSystem::tick()
 {
-    int i = 0;
-    std::vector<glm::vec3> face(4, glm::vec3());
-    std::vector<int> indices(6, 0);
+    auto chunk_mgr = m_admin->getChunkManager();
     auto renderer = m_admin->getRenderer();
     
-    for (auto const &chunk: m_admin->getChunkManager()->m_chunks) {
+    std::vector<int> indices(6, 0);
+    std::vector<glm::vec3> face(4);
+    for (auto const &chunk: chunk_mgr->m_chunks) {
 	for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
 	    for (int x = 0; x < WorldChunk::SPAN_X; x++) {
 		for (int z = 0; z < WorldChunk::SPAN_Z; z++) {
-		    
 		    if (chunk->m_blocks[x][y][z]) {
-			glm::vec3 position = glm::vec3(x, y, z);
-			glm::mat4 translate = glm::translate(glm::mat4(1), glm::vec3(x, y, z));
-			
+			glm::vec3 chunk_position = glm::vec3(x, y, z);
+
+			glm::vec3 world_position = chunk_position
+			    + glm::vec3(chunk->m_position.x, 0, chunk->m_position.z);
+			glm::mat4 translate = glm::translate(glm::mat4(1), world_position);
+		    
 			for (int q = 0; q < 6; q++) {
-			    if (!checkNeighbour(chunk, position, q)) {
+			    if (!checkNeighbour(chunk, chunk_position, q)) {
+				indices = {0, 3, 1, 0, 2, 3};
 				for (int j = 0; j < 4; j++) {
-				    face[j] = translate * glm::vec4(CUBE_FACES[q][j], 1);
-                                }
-                                indices = {i/3, i/3 + 3, i/3 + 1, i/3, i/3 + 2, i/3 + 3};
-				renderer->appendVertices(face.begin(), face.end());
-				renderer->appendIndices(indices.begin(), indices.end());
+				    face[j] = glm::vec3(translate
+							* glm::vec4(CUBE_FACES[q][j], 1));
+				}
+				renderer->copyVertexData(face, indices);
 			    }
-                        }
-                    }
-                }
-            }
-        }
+			}
+		    }
+		}
+	    }
+	}
     }
 }

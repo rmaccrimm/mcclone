@@ -53,7 +53,8 @@ int main()
     
     Renderer renderer(window);
     InputManager input_mgr(window);
-    EntityAdmin admin(&input_mgr, &renderer, nullptr);
+    ChunkManager chunk_mgr;
+    EntityAdmin admin(&input_mgr, &renderer, &chunk_mgr);
     int camera_id = admin.createEntity<CameraComponent, TransformComponent, PlayerControlComponent>();
 
     auto transform = admin.getComponent<TransformComponent>(camera_id);
@@ -61,21 +62,17 @@ int main()
     transform->m_forward = glm::vec3(16.0, 10.0, 16.0) - transform->m_position;
 
     CameraMovementSystem cam_system(&admin);
-    // RenderSystem render_system(&admin);
-    // return 0;
+    RenderSystem render_system(&admin);
     
     if (renderer.initialize()) {
         return 1;
     }
 
-    ChunkManager chunk_mgr;
-    	    
     printf("Running...\n");
-    renderer.renderChunks(&chunk_mgr);
-    // render_system.tick();
+
+    render_system.tick();
 
     using namespace std::chrono;
-	
     double framerate = 60;
     duration<double> T(1.0 / framerate);
     duration<double> dt;
@@ -92,6 +89,7 @@ int main()
 	    input_mgr.update(event);
         }
 	cam_system.tick();
+
 	renderer.draw();
 
 	auto t_draw = steady_clock::now();

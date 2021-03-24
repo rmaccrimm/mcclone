@@ -21,12 +21,12 @@ public:
 
     void clearBuffers();
     
-    void renderChunks(ChunkManager* chunk);
-    
     void setViewMatrix(glm::mat4 view_matrix);
 
     void copyVertexData(const std::vector<glm::vec3> &verts,
 			const std::vector<int> &inds);
+
+    void reset();
 
 private:
     int cleanup();
