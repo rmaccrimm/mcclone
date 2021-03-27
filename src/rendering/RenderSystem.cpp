@@ -1,5 +1,6 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <array>
 
 #include "RenderSystem.h"
 #include "Renderer.h"
@@ -7,6 +8,7 @@
 #include "components/Component.h"
 #include "ChunkManager.h"
 #include "WorldChunk.h"
+#include "Vertex.h"
 
 
 enum CUBE_FACE {
@@ -88,8 +90,9 @@ void RenderSystem::tick()
     auto chunk_mgr = m_admin->getChunkManager();
     auto renderer = m_admin->getRenderer();
     
-    std::vector<int> indices(6, 0);
-    std::vector<glm::vec3> face(4);
+    std::array<int, 6> indices;
+    std::array<Vertex, 4> face;
+    
     for (auto const &chunk: chunk_mgr->m_chunks) {
 	for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
 	    for (int x = 0; x < WorldChunk::SPAN_X; x++) {
@@ -105,8 +108,10 @@ void RenderSystem::tick()
 			    if (!checkNeighbour(chunk, chunk_position, q)) {
 				indices = {0, 3, 1, 0, 2, 3};
 				for (int j = 0; j < 4; j++) {
-				    face[j] = glm::vec3(translate
-							* glm::vec4(CUBE_FACES[q][j], 1));
+				    face[j].position = glm::vec3(translate
+								 * glm::vec4(CUBE_FACES[q][j], 1));
+				    face[j].color = glm::vec3(0.0, 1.0, 0.0);
+				    face[j].normal = FACE_NORMALS[q];
 				}
 				renderer->copyVertexData(face, indices);
 			    }

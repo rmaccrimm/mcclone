@@ -6,6 +6,9 @@
 #include <glm/mat4x4.hpp>
 #include <memory>
 #include <vector>
+#include <array>
+
+#include "Vertex.h"
 
 class ChunkManager;
 
@@ -23,8 +26,8 @@ public:
     
     void setViewMatrix(glm::mat4 view_matrix);
 
-    void copyVertexData(const std::vector<glm::vec3> &verts,
-			const std::vector<int> &inds);
+    void copyVertexData(const std::array<Vertex, 4> &verts,
+			const std::array<int, 6> &inds);
 
     void reset();
 

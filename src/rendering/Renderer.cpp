@@ -23,72 +23,8 @@
 #include "WorldChunk.h"
 #include "config.h"
 
-const int VERT_BUFF_SIZE = 20 * (1 << 20);
-const int INDEX_BUFF_SIZE = 10 * (1 << 20);
-
-enum CUBE_FACE {
-    LEFT = 0,
-    RIGHT = 1 ,
-    BOTTOM = 2,
-    TOP = 3,
-    FRONT = 4,
-    BACK = 5
-};
-
-const glm::vec3 FACE_NORMALS[6]  = {
-    // LEFT
-    glm::vec3(-1, 0, 0),
-    // RIGHT
-    glm::vec3(1, 0, 0),
-    // BOTTOM
-    glm::vec3(0, -1, 0),
-    // TOP
-    glm::vec3(0, 1, 0),
-    // FRONT
-    glm::vec3(0, 0, -1),
-    // BACK
-    glm::vec3(0, 0, 1)
-};
-
-// TODO store/use the elements in a constant array as well
-const glm::vec3 CUBE_FACES[6][4] = {
-    {   // LEFT
-	glm::vec3(0, 0, 0),                             
-	glm::vec3(0, 0, 1),                             
-	glm::vec3(0, 1, 0),                             
-	glm::vec3(0, 1, 1),                             
-    },
-    {   // RIGHT
-	glm::vec3(1, 0, 1),
-	glm::vec3(1, 0, 0),
-	glm::vec3(1, 1, 1),
-	glm::vec3(1, 1, 0),
-    },
-    {   // BOTTOM
-	glm::vec3(0, 0, 0),
-	glm::vec3(1, 0, 0),
-	glm::vec3(0, 0, 1),
-	glm::vec3(1, 0, 1),
-    },
-    {   // TOP
-	glm::vec3(1, 1, 0),
-	glm::vec3(0, 1, 0),
-	glm::vec3(1, 1, 1),
-	glm::vec3(0, 1, 1),
-    },
-    {   // FRONT
-	glm::vec3(1, 0, 0),
-	glm::vec3(0, 0, 0),
-	glm::vec3(1, 1, 0),
-	glm::vec3(0, 1, 0),
-    },
-    {   // BACK
-	glm::vec3(0, 0, 1),
-	glm::vec3(1, 0, 1),
-	glm::vec3(0, 1, 1),
-	glm::vec3(1, 1, 1) 
-    }
-};
+const int VERT_BUFF_SIZE = 100 * (1 << 20);
+const int INDEX_BUFF_SIZE = 50 * (1 << 20);
 
 void GLAPIENTRY MessageCallback(
     __attribute__((unused)) GLenum source,
@@ -142,9 +78,10 @@ int Renderer::initialize()
     glFrontFace(GL_CW);
     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-    initShaders();
-    initGeometry();
-    // InitTextures();
+    if (initShaders())
+	return 1;
+    if (initGeometry())
+	return 1;
 
     return 0;
 }
@@ -237,9 +174,18 @@ int Renderer::initGeometry()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFF_SIZE, NULL, GL_STREAM_DRAW);
 
+    int stride = 9 * sizeof(GLfloat);
     // Bind vertex position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
     glEnableVertexAttribArray(0);
+
+    // Bind vertex position attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+
+    // Bind vertex position attribute
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
 
     return 0;
 }
@@ -275,15 +221,6 @@ Renderer::~Renderer() {
     // delete[] m_index_buff;
 }
 
-bool checkNeighbour(WorldChunk *chunk, glm::vec3 position, int face) {
-    auto n = position + FACE_NORMALS[face];
-    return (n.x >= 0 && n.x < WorldChunk::SPAN_X)
-	&& (n.y >= 0 && n.y < WorldChunk::SPAN_Y)
-	&& (n.z >= 0 && n.z < WorldChunk::SPAN_Z)
-	&& chunk->m_blocks[(int)n.x][(int)n.y][(int)n.z];
-}
-
-
 
 void Renderer::clearBuffers()
 {
@@ -291,17 +228,23 @@ void Renderer::clearBuffers()
     m_index_buff_pos = 0;
 }
 
-void Renderer::copyVertexData(const std::vector<glm::vec3> &verts,
-			      const std::vector<int> &inds)
+void Renderer::copyVertexData(const std::array<Vertex, 4> &verts,
+			      const std::array<int, 6> &inds)
 {
-    const int vertex_size = 3;
+    const int vertex_size = 9;
     for (auto it = inds.begin(); it != inds.end(); it++) {
 	m_index_buff[m_index_buff_pos++] = *it + m_vert_buff_pos / vertex_size;
     }
     for (auto it = verts.begin(); it != verts.end(); it++) {
-	m_vert_buff[m_vert_buff_pos++] = it->x;
-	m_vert_buff[m_vert_buff_pos++] = it->y;
-	m_vert_buff[m_vert_buff_pos++] = it->z;
+	m_vert_buff[m_vert_buff_pos++] = it->position.x;
+	m_vert_buff[m_vert_buff_pos++] = it->position.y;
+	m_vert_buff[m_vert_buff_pos++] = it->position.z;
+	m_vert_buff[m_vert_buff_pos++] = it->color.r;
+	m_vert_buff[m_vert_buff_pos++] = it->color.g;
+	m_vert_buff[m_vert_buff_pos++] = it->color.b;
+	m_vert_buff[m_vert_buff_pos++] = it->normal.x;
+	m_vert_buff[m_vert_buff_pos++] = it->normal.y;
+	m_vert_buff[m_vert_buff_pos++] = it->normal.z;
     }
 }
 
@@ -336,9 +279,3 @@ void Renderer::draw() {
     glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
     SDL_GL_SwapWindow(m_window);
 }
-
-// void Renderer::reset()
-// {
-    // m_vert_buff_pos = 0;
-    // m_index_buff_pos = 0;
-// }

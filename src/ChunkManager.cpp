@@ -4,7 +4,7 @@
 
 ChunkManager::ChunkManager()
 {
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 1; i++) {
 	WorldChunk* chunk = new WorldChunk();
 	int x = i / 10;
 	int z = i % 10;	
@@ -16,7 +16,7 @@ ChunkManager::ChunkManager()
 
 ChunkManager::~ChunkManager()
 {
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 1; i++) {
 	delete m_chunks[i]; 
     }
 }

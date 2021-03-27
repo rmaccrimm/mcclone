@@ -68,7 +68,7 @@ int main()
         return 1;
     }
 
-    printf("Running...\n");
+    printf("Transfering data to GPU...\n");
 
     render_system.tick();
 
@@ -79,6 +79,7 @@ int main()
     steady_clock::time_point t = steady_clock::now();
 
     SDL_Event event;
+    printf("Starting main loop...\n");
     for (should_run = 1; should_run; ) {
 	input_mgr.reset();
         while (SDL_PollEvent(&event)) {
