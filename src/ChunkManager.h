@@ -2,6 +2,7 @@
 #define _CHUNKMANAGER_H_
 
 #include <vector>
+#include <glm/vec3.hpp>
 
 class WorldChunk;
 
@@ -11,6 +12,8 @@ public:
     ChunkManager();
     ~ChunkManager();
     std::vector<WorldChunk*> m_chunks;
+
+    bool checkNeighbour(glm::vec3 position, glm::vec3 direction);
 };
 
 

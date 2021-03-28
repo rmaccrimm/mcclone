@@ -58,7 +58,7 @@ int main()
     int camera_id = admin.createEntity<CameraComponent, TransformComponent, PlayerControlComponent>();
 
     auto transform = admin.getComponent<TransformComponent>(camera_id);
-    transform->m_position = glm::vec3(16, 15.0, -10.0);
+    transform->m_position = glm::vec3(16, 40.0, -10.0);
     transform->m_forward = glm::vec3(16.0, 10.0, 16.0) - transform->m_position;
 
     CameraMovementSystem cam_system(&admin);

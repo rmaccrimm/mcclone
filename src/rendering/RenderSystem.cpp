@@ -75,15 +75,11 @@ const glm::vec3 CUBE_FACES[6][4] = {
     }
 };
 
-bool checkNeighbour(const WorldChunk *chunk, glm::vec3 position, int face) {
-    auto n = position + FACE_NORMALS[face];
-    return (n.x >= 0 && n.x < WorldChunk::SPAN_X)
-	&& (n.y >= 0 && n.y < WorldChunk::SPAN_Y)
-	&& (n.z >= 0 && n.z < WorldChunk::SPAN_Z)
-	&& chunk->m_blocks[(int)n.x][(int)n.y][(int)n.z];
-}
+
 
 RenderSystem::RenderSystem(EntityAdmin *admin) : m_admin{admin} {}
+
+const glm::vec3 colors[2] = {glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.3, 0.3, 0.3)};
 
 void RenderSystem::tick()
 {
@@ -105,12 +101,12 @@ void RenderSystem::tick()
 			glm::mat4 translate = glm::translate(glm::mat4(1), world_position);
 		    
 			for (int q = 0; q < 6; q++) {
-			    if (!checkNeighbour(chunk, chunk_position, q)) {
+			    if (!chunk_mgr->checkNeighbour(world_position, FACE_NORMALS[q])) {
 				indices = {0, 3, 1, 0, 2, 3};
 				for (int j = 0; j < 4; j++) {
 				    face[j].position = glm::vec3(translate
 								 * glm::vec4(CUBE_FACES[q][j], 1));
-				    face[j].color = glm::vec3(0.0, 1.0, 0.0);
+				    face[j].color = colors[chunk->m_blocks[x][y][z] - 1];
 				    face[j].normal = FACE_NORMALS[q];
 				}
 				renderer->copyVertexData(face, indices);

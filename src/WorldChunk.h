@@ -12,9 +12,11 @@ struct ChunkPosition
     int z;
 };
 
+
+
 class WorldChunk {
 public:
-    WorldChunk();
+    WorldChunk(int x, int z);
     
     static const int SPAN_X = 32;
     static const int SPAN_Y = 256;
@@ -23,6 +25,7 @@ public:
     ChunkPosition m_position;
     // Blocks run from (x, y) to (x + 31, y + 31), z = 0 to 255
     block_id m_blocks[SPAN_X][SPAN_Y][SPAN_Z];
+   
 };
 
 #endif /* _WORLDCHUNK_H_ */

@@ -13,7 +13,7 @@ CameraMovementSystem::CameraMovementSystem(EntityAdmin *admin)
     : m_admin(admin) {}
 
 
-float velocity = 0.2;
+float velocity = 0.7;
 float degrees_per_mouse_unit = 0.02;
 
 const float MAX_VERT_ANGLE = 175.0 * glm::pi<float>() / 180.0;

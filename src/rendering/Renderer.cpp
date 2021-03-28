@@ -23,8 +23,8 @@
 #include "WorldChunk.h"
 #include "config.h"
 
-const int VERT_BUFF_SIZE = 100 * (1 << 20);
-const int INDEX_BUFF_SIZE = 50 * (1 << 20);
+const int VERT_BUFF_SIZE = 500 * (1 << 20);
+const int INDEX_BUFF_SIZE = 250 * (1 << 20);
 
 void GLAPIENTRY MessageCallback(
     __attribute__((unused)) GLenum source,
@@ -75,8 +75,9 @@ int Renderer::initialize()
     glEnable( GL_DEBUG_OUTPUT );
     glDebugMessageCallback( MessageCallback, 0 );
     glEnable(GL_CULL_FACE);
+    glEnable (GL_DEPTH_TEST);
     glFrontFace(GL_CW);
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     if (initShaders())
 	return 1;
@@ -274,7 +275,7 @@ void Renderer::draw() {
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
     SDL_GL_SwapWindow(m_window);
