@@ -83,77 +83,80 @@ int Renderer::initialize()
 	return 1;
     if (initGeometry())
 	return 1;
+    if (initTextures())
+	return 1;
 
     return 0;
 }
+
+
+int loadShader(std::string fname, GLuint &shader_id, GLuint shader_type)
+{
+    GLint status;
+    char err_buf[512];
+    
+    // Load shader source
+    std::string proj_root = PROJECT_ROOT;
+    std::ifstream shader_in(proj_root + fname);
+    std::string shader_src;
+
+    shader_in.seekg(0, std::ios::end);   
+    shader_src.reserve(shader_in.tellg());
+    shader_in.seekg(0, std::ios::beg);
+
+    shader_src.assign(
+	(std::istreambuf_iterator<char>(shader_in)),
+	std::istreambuf_iterator<char>()
+    );
+
+    // Compile shader
+    const char* shader_c_str = shader_src.c_str();
+    printf("%s\n", shader_c_str);
+    shader_id = glCreateShader(shader_type);
+    glShaderSource(shader_id, 1, &shader_c_str, NULL);
+    glCompileShader(shader_id);
+    glGetShaderiv(shader_id, GL_COMPILE_STATUS, &status);
+    if (status != GL_TRUE) {
+        glGetShaderInfoLog(shader_id, sizeof(err_buf), NULL, err_buf);
+        err_buf[sizeof(err_buf)-1] = '\0';
+        fprintf(stderr, "Vertex shader compilation failed: %s\n", err_buf);
+        return 1;
+    }
+    return 0;
+}
+
 
 /*
  * Initialize Shaders
  */
 int Renderer::initShaders()
 {
-    GLint status;
-    char err_buf[512];
-
     glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
 
-    std::string proj_root = PROJECT_ROOT;
-    std::ifstream vert_in(proj_root + "/src/rendering/shaders/solid_color_vert.glsl");
-    std::string vert_shader_src;
+    if (loadShader("/src/rendering/shaders/solid_color_vert.glsl", m_vert_shader, GL_VERTEX_SHADER))
+	return 1;
 
-    vert_in.seekg(0, std::ios::end);   
-    vert_shader_src.reserve(vert_in.tellg());
-    vert_in.seekg(0, std::ios::beg);
-
-    vert_shader_src.assign(
-	(std::istreambuf_iterator<char>(vert_in)),
-	std::istreambuf_iterator<char>()
-    );
-
-    // Compile vertex shader
-    const char* vert_c_str = vert_shader_src.c_str();
-    m_vert_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(m_vert_shader, 1, &vert_c_str, NULL);
-    glCompileShader(m_vert_shader);
-    glGetShaderiv(m_vert_shader, GL_COMPILE_STATUS, &status);
-    if (status != GL_TRUE) {
-        glGetShaderInfoLog(m_vert_shader, sizeof(err_buf), NULL, err_buf);
-        err_buf[sizeof(err_buf)-1] = '\0';
-        fprintf(stderr, "Vertex shader compilation failed: %s\n", err_buf);
-        return 1;
-    }
-
-    std::ifstream frag_in(proj_root + "/src/rendering/shaders/solid_color_frag.glsl");
-    std::string frag_shader_src;
-
-    frag_in.seekg(0, std::ios::end);   
-    frag_shader_src.reserve(frag_in.tellg());
-    frag_in.seekg(0, std::ios::beg);
-
-    frag_shader_src.assign(
-	(std::istreambuf_iterator<char>(frag_in)),
-	std::istreambuf_iterator<char>()
-    );
-
-    // Compile fragment shader
-    const char* frag_c_str = frag_shader_src.c_str();
-    m_frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(m_frag_shader, 1, &frag_c_str, NULL);
-    glCompileShader(m_frag_shader);
-    glGetShaderiv(m_frag_shader, GL_COMPILE_STATUS, &status);
-    if (status != GL_TRUE) {
-        glGetShaderInfoLog(m_frag_shader, sizeof(err_buf), NULL, err_buf);
-        err_buf[sizeof(err_buf)-1] = '\0';
-        fprintf(stderr, "Fragment shader compilation failed: %s\n", err_buf);
-        return 1;
-    }
+    if (loadShader("/src/rendering/shaders/solid_color_frag.glsl", m_frag_shader, GL_FRAGMENT_SHADER))
+	return 1;
 
     // Link vertex and fragment shaders
     m_shader_prog = glCreateProgram();
     glAttachShader(m_shader_prog, m_vert_shader);
     glAttachShader(m_shader_prog, m_frag_shader);
     glLinkProgram(m_shader_prog);
+
+    GLint status;
+    char err_buf[512];
+
+    glGetProgramiv(m_shader_prog, GL_LINK_STATUS, &status);
+    if (status != GL_TRUE) {
+        glGetShaderInfoLog(m_shader_prog, sizeof(err_buf), NULL, err_buf);
+        err_buf[sizeof(err_buf)-1] = '\0';
+        fprintf(stderr, "Vertex shader compilation failed: %s\n", err_buf);
+        return 1;
+    }
+    
     glUseProgram(m_shader_prog);
 
     return 0;
@@ -188,6 +191,31 @@ int Renderer::initGeometry()
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(GLfloat)));
     glEnableVertexAttribArray(2);
 
+    return 0;
+}
+
+int Renderer::initTextures()
+{
+    glGenTextures(1, &m_frame_buffer);
+    glBindTexture(GL_TEXTURE_2D, m_frame_buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGB, 1024, 768, 0,GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    glGenRenderbuffers(1, &m_depth_buffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 768);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_buffer);
+
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_frame_buffer, 0);
+
+    GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, draw_buffers);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+	return 1;
+    }
+	
     return 0;
 }
 
@@ -274,9 +302,39 @@ void Renderer::draw() {
 
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));
+
+    // glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
+
+    glViewport(0,0,1920,1080);
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
     SDL_GL_SwapWindow(m_window);
+
+
+
+    // ------------------------
+    // GLuint quad_VertexArrayID;
+    // glGenVertexArrays(1, &quad_VertexArrayID);
+    // glBindVertexArray(quad_VertexArrayID);
+
+    // static const GLfloat g_quad_vertex_buffer_data[] = {
+    // 	-1.0f, -1.0f, 0.0f,
+    // 	1.0f, -1.0f, 0.0f,
+    // 	-1.0f,  1.0f, 0.0f,
+    // 	-1.0f,  1.0f, 0.0f,
+    // 	1.0f, -1.0f, 0.0f,
+    // 	1.0f,  1.0f, 0.0f,
+    // };
+
+    // GLuint quad_vertexbuffer;
+    // glGenBuffers(1, &quad_vertexbuffer);
+    // glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
+
+    // // Create and compile our GLSL program from the shaders
+    // GLuint quad_programID = LoadShaders( "Passthrough.vertexshader", "SimpleTexture.fragmentshader" );
+    // GLuint texID = glGetUniformLocation(quad_programID, "renderedTexture");
+    // GLuint timeID = glGetUniformLocation(quad_programID, "time");
 }

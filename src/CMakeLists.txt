@@ -5,11 +5,11 @@ include_directories(${GLEW_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 link_libraries(${GLEW_LIBRARIES})
 
 add_compile_definitions(PROJECT_ROOT="${PROJECT_SOURCE_DIR}")
-configure_file(${PROJECT_SOURCE_DIR}/src/include/config.h.in ${CMAKE_BINARY_DIR}/generated/config.h)
+configure_file(${PROJECT_SOURCE_DIR}/include/config.h.in ${CMAKE_BINARY_DIR}/generated/config.h)
 
 include_directories(
 	${PROJECT_SOURCE_DIR}/src/
-	${PROJECT_SOURCE_DIR}/src/include
+	${PROJECT_SOURCE_DIR}/include
 	${PROJECT_SOURCE_DIR}/src/rendering
 	${CMAKE_BINARY_DIR}/generated/
 )

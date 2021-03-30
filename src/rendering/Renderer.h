@@ -47,6 +47,10 @@ private:
     GLuint m_frag_shader;
     GLuint m_shader_prog;
     
+    GLuint m_frame_buffer;
+    // TODO
+    GLuint m_depth_buffer;
+    
     std::unique_ptr<GLfloat[]> m_vert_buff;
     std::unique_ptr<GLint[]> m_index_buff;
     int m_vert_buff_pos;

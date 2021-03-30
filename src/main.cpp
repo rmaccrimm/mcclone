@@ -25,10 +25,8 @@
 #include <chrono>
 #include <thread>
 
-
 /*
- * Program entry point
- */
+ * Program entry point */
 int main()
 {
     int should_run;

@@ -2,10 +2,15 @@
 in vec3 color;
 in vec3 normal;
 
+out vec4 fragColor;
+
 void main()                                                                 
 {
-    vec3 lightDir = vec3(-0.5, 0.8, 0);
+    const vec3 lightDir = vec3(-0.5, 0.8, 0);
+    const float ambient = 0.2;
+    
     float diff = max(dot(normal, lightDir), 0.0);
-    vec3 diffuse = diff * color;
-    gl_FragColor = vec4(diffuse + 0.1 * color, 1.0);                               
+    float intensity = min(diff + ambient, 1.0);
+    
+    fragColor = vec4(intensity * color, 1.0);                               
 }                                                                          

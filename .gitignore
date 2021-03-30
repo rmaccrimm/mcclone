@@ -1,4 +1,4 @@
-src/include/glm/
+/include/
 build/
 debug/
 .*

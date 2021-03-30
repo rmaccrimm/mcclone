@@ -1,7 +1,7 @@
 #include "ChunkManager.h"
 #include "WorldChunk.h"
 
-const int WORLD_SIZE = 10;
+const int WORLD_SIZE = 5;
 
 ChunkManager::ChunkManager()
 {
