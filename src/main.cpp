@@ -3,6 +3,7 @@
  * Use this as you wish. Licensed under CC0. No attribution required.
  */
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <GL/glew.h>
 #include <stdio.h>
 #include <glm/vec3.hpp>
@@ -37,6 +38,7 @@ int main()
 	fprintf(stderr, "Failed to initialize SDL video\n");
 	return 1;
     }
+    
     SDL_SetRelativeMouseMode(SDL_TRUE);
     // Create main window
     SDL_Window *window = 
@@ -47,6 +49,30 @@ int main()
 	SDL_Quit();
 	return 1;
     }
+
+    printf("Initializing TTF\n");
+    if(TTF_Init()==-1) {
+	printf("TTF_Init: %s\n", TTF_GetError());
+	SDL_Quit();
+	return 1;
+    }
+    TTF_Font* font = TTF_OpenFont("/usr/share/fonts/liberation/LiberationSans-Regular.ttf", 24);
+    if (!font) {
+	printf("TTF_Init: %s\n", TTF_GetError());
+	SDL_Quit();
+	return 1;
+    }
+
+    SDL_Color White = {255, 255, 255};  
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "put your text here", White);
+    printf("Rendered surface\n");
+
+    SDL_FreeSurface(surfaceMessage);
+    TTF_CloseFont(font);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    
+    return 0;
 
     
     Renderer renderer(window);
