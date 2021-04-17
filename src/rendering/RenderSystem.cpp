@@ -1,6 +1,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <array>
+#include <plog/Log.h>
 
 #include "RenderSystem.h"
 #include "Renderer.h"
@@ -83,6 +84,7 @@ const glm::vec3 colors[2] = {glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.3, 0.3, 0.3)}
 
 void RenderSystem::tick()
 {
+    LOG_INFO << "Transfering data to GPU";
     auto chunk_mgr = m_admin->getChunkManager();
     auto renderer = m_admin->getRenderer();
     

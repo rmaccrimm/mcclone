@@ -107,9 +107,9 @@ int Renderer::initialize()
     SDL_GL_SetSwapInterval(1); // Use VSYNC
 
     // Initialize
-    LOG_INFO << "Initializing GL Extension Wrangler (GLEW)";
+    LOG_INFO << "Initializing GLEW";
     GLenum err;
-    glewExperimental = GL_TRUE; // Please expose OpenGL 3.x+ interfaces
+    glewExperimental = GL_TRUE; // expose OpenGL 3.x+ interfaces
     err = glewInit();
     if (err != GLEW_OK) {
         LOG_ERROR << "Failed to init GLEW";
@@ -121,14 +121,10 @@ int Renderer::initialize()
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-    glFrontFace(GL_CW);
+    // glEnable(GL_CULL_FACE);
+    // glEnable(GL_DEPTH_TEST);
+    // glFrontFace(GL_CW);
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
-    LOG_INFO << "Generating VAOs";
-    glGenVertexArrays(1, &m_scene.vao);
-    glBindVertexArray(m_scene.vao);
 
     if (initShader("solid_color") || initShader("screen"))
         return 1;
@@ -220,7 +216,7 @@ int Renderer::initShader(std::string shader_name)
         return 1;
     }
 
-    glUseProgram(shader_prog);
+    LOG_INFO << "Registered shader " << '"' << shader_name << '"';
 
     return 0;
 }
@@ -230,6 +226,15 @@ int Renderer::initShader(std::string shader_name)
  */
 int Renderer::initGeometry()
 {
+    // TODO - somehow make this more generic? Might only need 2 vaos though
+    glGenVertexArrays(1, &m_scene.vao);
+    glGenVertexArrays(1, &m_screen.vao);
+
+    /*
+      Main scene rendering vertex data
+    */
+    glBindVertexArray(m_scene.vao);
+
     // Allocate vertex buffer
     glGenBuffers(1, &m_scene.vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_scene.vbo);
@@ -238,6 +243,7 @@ int Renderer::initGeometry()
     // Allocate element buffer
     glGenBuffers(1, &m_scene.ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_scene.ebo);
+    // buffer is initially empty
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFF_SIZE, NULL, GL_STREAM_DRAW);
 
     int stride = 9 * sizeof(GLfloat);
@@ -245,38 +251,58 @@ int Renderer::initGeometry()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
     glEnableVertexAttribArray(0);
 
-    // Bind vertex position attribute
+    // Bind vertex color attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
 
-    // Bind vertex position attribute
+    // Bind vertex normal attribute
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(GLfloat)));
     glEnableVertexAttribArray(2);
 
+    /*
+      Screen quad rendering vertex data
+    */
+    glBindVertexArray(m_screen.vao);
+    glGenBuffers(1, &m_screen.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
+
+    // Write quad vertex data to buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(SCREEN_QUAD), SCREEN_QUAD, GL_STATIC_DRAW);
+    
+    // vertex positions
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+
+    // vertex texture coordinates
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     return 0;
 }
 
 int Renderer::initTextures()
 {
-    glGenTextures(1, &m_frame_buffer);
-    glBindTexture(GL_TEXTURE_2D, m_frame_buffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 768, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // glGenTextures(1, &m_frame_buffer);
+    // glBindTexture(GL_TEXTURE_2D, m_frame_buffer);
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 768, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    glGenRenderbuffers(1, &m_depth_buffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 768);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_buffer);
+    // glGenRenderbuffers(1, &m_depth_buffer);
+    // glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer);
+    // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 768);
+    // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_buffer);
 
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_frame_buffer, 0);
+    // glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_frame_buffer, 0);
 
-    GLenum draw_buffers[1] = { GL_COLOR_ATTACHMENT0 };
-    glDrawBuffers(1, draw_buffers);
+    // GLenum draw_buffers[1] = { GL_COLOR_ATTACHMENT0 };
+    // glDrawBuffers(1, draw_buffers);
 
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        return 1;
-    }
+    // if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        // return 1;
+    // }
 
     return 0;
 }
@@ -310,21 +336,23 @@ void Renderer::setViewMatrix(glm::mat4 view_matrix) { m_view_matrix = view_matri
 
 void Renderer::draw()
 {
+    // glBindVertexArray(m_scene.vao);
+    // glBindBuffer(GL_ARRAY_BUFFER, m_scene.vbo);
     // TODO - don't do this every frame, only for updated chunks
-    glBufferSubData(GL_ARRAY_BUFFER, 0, m_vert_buff_pos * sizeof(GLfloat), m_vert_buff.get());
-    glBufferSubData(
-        GL_ELEMENT_ARRAY_BUFFER, 0, m_index_buff_pos * sizeof(GLint), m_index_buff.get());
+    // glBufferSubData(GL_ARRAY_BUFFER, 0, m_vert_buff_pos * sizeof(GLfloat), m_vert_buff.get());
+    // glBufferSubData(
+        // GL_ELEMENT_ARRAY_BUFFER, 0, m_index_buff_pos * sizeof(GLint), m_index_buff.get());
 
-    auto shader_prog = m_shader_prog_map["solid_color"];
-    glUseProgram(shader_prog);
+    // auto shader_prog = m_shader_prog_map["solid_color"];
+    // glUseProgram(shader_prog);
 
-    GLint view_loc = glGetUniformLocation(shader_prog, "View");
-    GLint proj_loc = glGetUniformLocation(shader_prog, "Projection");
+    // GLint view_loc = glGetUniformLocation(shader_prog, "View");
+    // GLint proj_loc = glGetUniformLocation(shader_prog, "Projection");
 
-    auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
+    // auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
 
-    glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
-    glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));
+    // glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
+    // glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));
 
     // glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
 
@@ -332,6 +360,11 @@ void Renderer::draw()
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
+    // glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
+
+    glBindVertexArray(m_screen.vao);
+    glUseProgram(m_shader_prog_map["screen"]);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    
     SDL_GL_SwapWindow(m_window);
 }

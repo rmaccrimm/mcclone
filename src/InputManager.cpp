@@ -1,6 +1,6 @@
 #include "InputManager.h"
 #include <SDL2/SDL.h>
-#include <iostream>
+#include <plog/Log.h>
 
 static const std::map<SDL_Keycode, Key> key_map = {
     {SDLK_a, LEFT},
@@ -31,13 +31,13 @@ void InputManager::update(SDL_Event &event)
         
         if (event.type == SDL_KEYDOWN) {
             if (!m_key_pressed[k]) {
-		std::cout << "Pressed key " << k << std::endl;
+		LOG_VERBOSE << "Pressed key " << k;
                 m_key_pressed[k] = !m_key_pressed[k];
             }
         }
         else {
           if (m_key_pressed[k]) {
-	      std::cout << "Released key " << k << std::endl;
+	      LOG_VERBOSE << "Released key " << k;
 	      m_key_pressed[k] = !m_key_pressed[k];
           }
         }

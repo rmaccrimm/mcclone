@@ -30,8 +30,6 @@
 #include <thread>
 #include <unordered_map>
 
-/*
- * Program entry point */
 int main()
 {
     // Initialize logger
@@ -40,15 +38,13 @@ int main()
 
     int should_run;
 
-    LOG_INFO << "Initializing...";
-    // Initialize SDL Video
+    LOG_INFO << "Initializing SDL";
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         LOG_ERROR << "Failed to initialize SDL video";
         return 1;
     }
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
-    // Create main window
     SDL_Window* window = SDL_CreateWindow(
         "SDL App", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1920, 1080, SDL_WINDOW_OPENGL);
     if (window == NULL) {
@@ -99,8 +95,6 @@ int main()
         return 1;
     }
 
-    LOG_INFO << "Transfering data to GPU...";
-
     render_system.tick();
 
     using namespace std::chrono;
@@ -110,7 +104,7 @@ int main()
     steady_clock::time_point t = steady_clock::now();
 
     SDL_Event event;
-    LOG_INFO << "Starting main loop...";
+    LOG_INFO << "Starting main loop";
     for (should_run = 1; should_run;) {
         input_mgr.reset();
         while (SDL_PollEvent(&event)) {
@@ -133,6 +127,6 @@ int main()
         t = steady_clock::now();
     }
 
-    LOG_INFO << "Exiting...";
+    LOG_INFO << "Exiting";
     return 0;
 }
