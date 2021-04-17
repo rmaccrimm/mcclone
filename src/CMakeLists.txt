@@ -38,7 +38,7 @@ target_link_libraries(
 	SDL2::SDL2
 	${SDL2TTF_LIBRARY}
 	GLEW::GLEW
-	${OPENGL_gl_LIBRARY} 
+	${OPENGL_gl_LIBRARY}
 )
 
 

@@ -1,4 +1,8 @@
-#include <CImg.h>
+#include <fstream>
+#include <streambuf>
+#include <string>
+#include <vector>
+
 // clang-format off
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -15,10 +19,8 @@
 #include <glm/mat4x4.hpp>
 #include <plog/Log.h>
 
-#include <fstream>
-#include <streambuf>
-#include <string>
-#include <vector>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 #include "ChunkManager.h"
 #include "EntityAdmin.h"
@@ -82,8 +84,6 @@ Renderer::~Renderer()
     SDL_GL_DeleteContext(m_context);
     SDL_DestroyWindow(m_window);
     SDL_Quit();
-    // delete[] m_vert_buff;
-    // delete[] m_index_buff;
 }
 
 int Renderer::initialize()
@@ -268,7 +268,7 @@ int Renderer::initGeometry()
 
     // Write quad vertex data to buffer
     glBufferData(GL_ARRAY_BUFFER, sizeof(SCREEN_QUAD), SCREEN_QUAD, GL_STATIC_DRAW);
-    
+
     // vertex positions
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -284,25 +284,28 @@ int Renderer::initGeometry()
 
 int Renderer::initTextures()
 {
-    // glGenTextures(1, &m_frame_buffer);
-    // glBindTexture(GL_TEXTURE_2D, m_frame_buffer);
-    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 768, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glGenTextures(1, &m_screen.tex);
 
-    // glGenRenderbuffers(1, &m_depth_buffer);
-    // glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer);
-    // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 768);
-    // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_buffer);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_screen.tex);
 
-    // glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_frame_buffer, 0);
+    const char* img_path = "/home/rmaccrimmon/projects/mcclone/textures/Stylized_Grass_003_SD/"
+                           "Stylized_Grass_003_basecolor.jpg";
 
-    // GLenum draw_buffers[1] = { GL_COLOR_ATTACHMENT0 };
-    // glDrawBuffers(1, draw_buffers);
+    LOG_INFO << "Loading texture " << img_path;
+    int width, height, n;
+    unsigned char* data = stbi_load(img_path, &width, &height, &n, 0);
+    if (data == nullptr) {
+        LOG_ERROR << "Image loading failed";
+        return 1;
+    }
+    LOG_INFO << n << " components, " << width << " width, " << height << " height";
 
-    // if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        // return 1;
-    // }
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    stbi_image_free(data);
 
     return 0;
 }
@@ -341,7 +344,7 @@ void Renderer::draw()
     // TODO - don't do this every frame, only for updated chunks
     // glBufferSubData(GL_ARRAY_BUFFER, 0, m_vert_buff_pos * sizeof(GLfloat), m_vert_buff.get());
     // glBufferSubData(
-        // GL_ELEMENT_ARRAY_BUFFER, 0, m_index_buff_pos * sizeof(GLint), m_index_buff.get());
+    // GL_ELEMENT_ARRAY_BUFFER, 0, m_index_buff_pos * sizeof(GLint), m_index_buff.get());
 
     // auto shader_prog = m_shader_prog_map["solid_color"];
     // glUseProgram(shader_prog);
@@ -363,8 +366,10 @@ void Renderer::draw()
     // glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
 
     glBindVertexArray(m_screen.vao);
-    glUseProgram(m_shader_prog_map["screen"]);
+    auto shader = m_shader_prog_map["screen"];
+    glUseProgram(shader);
+    GLint texture_loc = glGetUniformLocation(shader, "screen_texture");
+    glUniform1i(texture_loc, 0);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-    
     SDL_GL_SwapWindow(m_window);
 }
