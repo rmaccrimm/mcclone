@@ -2,7 +2,7 @@
 build/
 debug/
 cmake/
-.*
+.*/
 !/.gitignore
 #*
 ~*

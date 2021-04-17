@@ -1,6 +1,8 @@
 #include <CImg.h>
-#include <GL/gl.h>
+// clang-format off
 #include <GL/glew.h>
+#include <GL/gl.h>
+// clang-format on
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <glm/ext/matrix_clip_space.hpp>
@@ -11,9 +13,9 @@
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/mat4x4.hpp>
+#include <plog/Log.h>
 
 #include <fstream>
-#include <iostream>
 #include <streambuf>
 #include <string>
 #include <vector>
@@ -27,31 +29,67 @@
 const int VERT_BUFF_SIZE = 500 * (1 << 20);
 const int INDEX_BUFF_SIZE = 250 * (1 << 20);
 
+// clang-format off
 const float SCREEN_QUAD[] = {
-    //  position      texture coords
-    -1, 1, 0, 0, 1, -1, -1, 0, 0, 0, 1, -1, 0, 1, 0, -1, 1, 0, 0, 1, 1, -1, 0, 1, 0, 1, 1, 0, 1, 1
+//   position    texture coords
+    -1,  1, 0,   0, 1,
+    -1, -1, 0,   0, 0,
+     1, -1, 0,   1, 0,
+    -1,  1, 0,   0, 1,
+     1, -1, 0,   1, 0,
+     1,  1, 0,   1, 1
 };
+// clang-format on
 
 void GLAPIENTRY MessageCallback(
     __attribute__((unused)) GLenum source,
-    GLenum type,
+    __attribute__((unused)) GLenum type,
     __attribute__((unused)) GLuint id,
-    GLenum severity,
+    __attribute__((unused)) GLenum severity,
     __attribute__((unused)) GLsizei length,
     const GLchar* message,
     __attribute__((unused)) const void* userParam)
 {
-    fprintf(
-        stderr,
-        "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-        (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
-        type,
-        severity,
-        message);
+    if (std::string(message) != "") {
+        LOG_INFO << "* GL Message * " << message;
+    }
+}
+
+Renderer::Renderer(SDL_Window* window)
+{
+    m_window = window;
+    m_vert_buff = std::unique_ptr<GLfloat[]>(new GLfloat[VERT_BUFF_SIZE]);
+    m_vert_buff_pos = 0;
+    m_index_buff = std::unique_ptr<GLint[]>(new GLint[INDEX_BUFF_SIZE]);
+    m_index_buff_pos = 0;
+    m_view_matrix = glm::lookAt(
+        glm::vec3(-20.0f, 20.0f, -4.0f), glm::vec3(16.0f, 5.0f, 16.0f), glm::vec3(0.0f, 1.0f, 0.0));
+}
+
+Renderer::~Renderer()
+{
+    glUseProgram(0);
+    glDisableVertexAttribArray(0);
+
+    for (auto& p : m_shader_prog_map) {
+        glDeleteProgram(p.second);
+    }
+
+    glDeleteTextures(1, &m_scene.tex);
+    glDeleteBuffers(1, &m_scene.ebo);
+    glDeleteBuffers(1, &m_scene.vbo);
+    glDeleteVertexArrays(1, &m_scene.vao);
+    SDL_GL_DeleteContext(m_context);
+    SDL_DestroyWindow(m_window);
+    SDL_Quit();
+    // delete[] m_vert_buff;
+    // delete[] m_index_buff;
 }
 
 int Renderer::initialize()
 {
+    LOG_INFO << "Initializing renderer";
+
     // Initialize rendering context
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -60,7 +98,7 @@ int Renderer::initialize()
 
     m_context = SDL_GL_CreateContext(m_window);
     if (m_context == NULL) {
-        fprintf(stderr, "Failed to create GL context\n");
+        LOG_ERROR << "Failed to create GL context";
         SDL_DestroyWindow(m_window);
         SDL_Quit();
         return 1;
@@ -68,12 +106,13 @@ int Renderer::initialize()
 
     SDL_GL_SetSwapInterval(1); // Use VSYNC
 
-    // Initialize GL Extension Wrangler (GLEW)
+    // Initialize
+    LOG_INFO << "Initializing GL Extension Wrangler (GLEW)";
     GLenum err;
     glewExperimental = GL_TRUE; // Please expose OpenGL 3.x+ interfaces
     err = glewInit();
     if (err != GLEW_OK) {
-        fprintf(stderr, "Failed to init GLEW\n");
+        LOG_ERROR << "Failed to init GLEW";
         SDL_GL_DeleteContext(m_context);
         SDL_DestroyWindow(m_window);
         SDL_Quit();
@@ -87,7 +126,11 @@ int Renderer::initialize()
     glFrontFace(GL_CW);
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-    if (initShaders())
+    LOG_INFO << "Generating VAOs";
+    glGenVertexArrays(1, &m_scene.vao);
+    glBindVertexArray(m_scene.vao);
+
+    if (initShader("solid_color") || initShader("screen"))
         return 1;
     if (initGeometry())
         return 1;
@@ -99,6 +142,7 @@ int Renderer::initialize()
 
 int loadShader(std::string fname, GLuint& shader_id, GLuint shader_type)
 {
+    LOG_INFO << "Compiling shader " << fname << "...";
     GLint status;
     char err_buf[512];
 
@@ -116,7 +160,7 @@ int loadShader(std::string fname, GLuint& shader_id, GLuint shader_type)
 
     // Compile shader
     const char* shader_c_str = shader_src.c_str();
-    printf("%s\n", shader_c_str);
+
     shader_id = glCreateShader(shader_type);
     glShaderSource(shader_id, 1, &shader_c_str, NULL);
     glCompileShader(shader_id);
@@ -124,7 +168,7 @@ int loadShader(std::string fname, GLuint& shader_id, GLuint shader_type)
     if (status != GL_TRUE) {
         glGetShaderInfoLog(shader_id, sizeof(err_buf), NULL, err_buf);
         err_buf[sizeof(err_buf) - 1] = '\0';
-        fprintf(stderr, "Vertex shader compilation failed: %s\n", err_buf);
+        LOG_ERROR << "Vertex shader compilation failed:\n" << err_buf;
         return 1;
     }
     return 0;
@@ -133,39 +177,50 @@ int loadShader(std::string fname, GLuint& shader_id, GLuint shader_type)
 /*
  * Initialize Shaders
  */
-int Renderer::initShaders()
+int Renderer::initShader(std::string shader_name)
 {
-    glGenVertexArrays(1, &m_scene.vao);
-    glBindVertexArray(m_scene.vao);
+    GLuint vert_shader;
+    GLuint frag_shader;
 
     if (loadShader(
-            "/src/rendering/shaders/solid_color_vert.glsl", m_scene.vert_shader, GL_VERTEX_SHADER))
+            "/src/rendering/shaders/" + shader_name + "_vert.glsl",
+            vert_shader,
+            GL_VERTEX_SHADER)) {
         return 1;
+    }
 
     if (loadShader(
-            "/src/rendering/shaders/solid_color_frag.glsl",
-            m_scene.frag_shader,
-            GL_FRAGMENT_SHADER))
+            "/src/rendering/shaders/" + shader_name + "_frag.glsl",
+            frag_shader,
+            GL_FRAGMENT_SHADER)) {
         return 1;
+    }
 
     // Link vertex and fragment shaders
-    m_scene.shader_prog = glCreateProgram();
-    glAttachShader(m_scene.shader_prog, m_scene.vert_shader);
-    glAttachShader(m_scene.shader_prog, m_scene.frag_shader);
-    glLinkProgram(m_scene.shader_prog);
+    m_shader_prog_map[shader_name] = glCreateProgram();
+    auto shader_prog = m_shader_prog_map[shader_name];
+
+    glAttachShader(shader_prog, vert_shader);
+    glAttachShader(shader_prog, frag_shader);
+    glLinkProgram(shader_prog);
+
+    glDetachShader(shader_prog, vert_shader);
+    glDetachShader(shader_prog, frag_shader);
+    glDeleteShader(vert_shader);
+    glDeleteShader(frag_shader);
 
     GLint status;
     char err_buf[512];
 
-    glGetProgramiv(m_scene.shader_prog, GL_LINK_STATUS, &status);
+    glGetProgramiv(shader_prog, GL_LINK_STATUS, &status);
     if (status != GL_TRUE) {
-        glGetShaderInfoLog(m_scene.shader_prog, sizeof(err_buf), NULL, err_buf);
+        glGetShaderInfoLog(shader_prog, sizeof(err_buf), NULL, err_buf);
         err_buf[sizeof(err_buf) - 1] = '\0';
         fprintf(stderr, "Vertex shader compilation failed: %s\n", err_buf);
         return 1;
     }
 
-    glUseProgram(m_scene.shader_prog);
+    glUseProgram(shader_prog);
 
     return 0;
 }
@@ -226,37 +281,6 @@ int Renderer::initTextures()
     return 0;
 }
 
-Renderer::Renderer(SDL_Window* window)
-{
-    m_window = window;
-    m_vert_buff = std::unique_ptr<GLfloat[]>(new GLfloat[VERT_BUFF_SIZE]);
-    m_vert_buff_pos = 0;
-    m_index_buff = std::unique_ptr<GLint[]>(new GLint[INDEX_BUFF_SIZE]);
-    m_index_buff_pos = 0;
-    m_view_matrix = glm::lookAt(
-        glm::vec3(-20.0f, 20.0f, -4.0f), glm::vec3(16.0f, 5.0f, 16.0f), glm::vec3(0.0f, 1.0f, 0.0));
-}
-
-Renderer::~Renderer()
-{
-    glUseProgram(0);
-    glDisableVertexAttribArray(0);
-    glDetachShader(m_scene.shader_prog, m_scene.vert_shader);
-    glDetachShader(m_scene.shader_prog, m_scene.frag_shader);
-    glDeleteProgram(m_scene.shader_prog);
-    glDeleteShader(m_scene.vert_shader);
-    glDeleteShader(m_scene.frag_shader);
-    glDeleteTextures(1, &m_scene.tex);
-    glDeleteBuffers(1, &m_scene.ebo);
-    glDeleteBuffers(1, &m_scene.vbo);
-    glDeleteVertexArrays(1, &m_scene.vao);
-    SDL_GL_DeleteContext(m_context);
-    SDL_DestroyWindow(m_window);
-    SDL_Quit();
-    // delete[] m_vert_buff;
-    // delete[] m_index_buff;
-}
-
 void Renderer::clearBuffers()
 {
     m_vert_buff_pos = 0;
@@ -291,10 +315,11 @@ void Renderer::draw()
     glBufferSubData(
         GL_ELEMENT_ARRAY_BUFFER, 0, m_index_buff_pos * sizeof(GLint), m_index_buff.get());
 
-    glUseProgram(m_scene.shader_prog);
+    auto shader_prog = m_shader_prog_map["solid_color"];
+    glUseProgram(shader_prog);
 
-    GLint view_loc = glGetUniformLocation(m_scene.shader_prog, "View");
-    GLint proj_loc = glGetUniformLocation(m_scene.shader_prog, "Projection");
+    GLint view_loc = glGetUniformLocation(shader_prog, "View");
+    GLint proj_loc = glGetUniformLocation(shader_prog, "Projection");
 
     auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
 
@@ -309,29 +334,4 @@ void Renderer::draw()
 
     glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
     SDL_GL_SwapWindow(m_window);
-
-    // ------------------------
-    // GLuint quad_VertexArrayID;
-    // glGenVertexArrays(1, &quad_VertexArrayID);
-    // glBindVertexArray(quad_VertexArrayID);
-
-    // static const GLfloat g_quad_vertex_buffer_data[] = {
-    // 	-1.0f, -1.0f, 0.0f,
-    // 	1.0f, -1.0f, 0.0f,
-    // 	-1.0f,  1.0f, 0.0f,
-    // 	-1.0f,  1.0f, 0.0f,
-    // 	1.0f, -1.0f, 0.0f,
-    // 	1.0f,  1.0f, 0.0f,
-    // };
-
-    // GLuint quad_vertexbuffer;
-    // glGenBuffers(1, &quad_vertexbuffer);
-    // glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data,
-    // GL_STATIC_DRAW);
-
-    // // Create and compile our GLSL program from the shaders
-    // GLuint quad_programID = LoadShaders( "Passthrough.vertexshader",
-    // "SimpleTexture.fragmentshader" ); GLuint texID = glGetUniformLocation(quad_programID,
-    // "renderedTexture"); GLuint timeID = glGetUniformLocation(quad_programID, "time");
 }

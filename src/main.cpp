@@ -2,84 +2,91 @@
  * 2017 SDL2 with OpenGL Boilerplate Code
  * Use this as you wish. Licensed under CC0. No attribution required.
  */
+#include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <GL/glew.h>
-#include <stdio.h>
-#include <glm/vec3.hpp>
-#include <glm/mat4x4.hpp>
-#include <variant>
-#include <iostream>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+#include <iostream>
+#include <plog/Appenders/ColorConsoleAppender.h>
+#include <plog/Formatters/FuncMessageFormatter.h>
+#include <plog/Init.h>
+#include <plog/Log.h>
+#include <stdio.h>
+#include <variant>
 
-#include "rendering/Renderer.h"
-#include "rendering/RenderSystem.h"
-#include "InputManager.h"
-#include "ChunkManager.h"
-#include "WorldChunk.h"
-#include "EntityAdmin.h"
 #include "CameraMovementSystem.h"
+#include "ChunkManager.h"
+#include "EntityAdmin.h"
+#include "InputManager.h"
+#include "WorldChunk.h"
 #include "components/Component.h"
+#include "rendering/RenderSystem.h"
+#include "rendering/Renderer.h"
 
-#include <unordered_map>
-#include <ranges>
 #include <chrono>
+#include <ranges>
 #include <thread>
+#include <unordered_map>
 
 /*
  * Program entry point */
 int main()
 {
+    // Initialize logger
+    static plog::ColorConsoleAppender<plog::FuncMessageFormatter> consoleAppender;
+    plog::init(plog::verbose, &consoleAppender);
+
     int should_run;
 
-    printf("Initializing...\n");
+    LOG_INFO << "Initializing...";
     // Initialize SDL Video
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-	fprintf(stderr, "Failed to initialize SDL video\n");
-	return 1;
+        LOG_ERROR << "Failed to initialize SDL video";
+        return 1;
     }
-    
+
     SDL_SetRelativeMouseMode(SDL_TRUE);
     // Create main window
-    SDL_Window *window = 
-	SDL_CreateWindow("SDL App", SDL_WINDOWPOS_CENTERED,
-			 SDL_WINDOWPOS_CENTERED, 1920, 1080, SDL_WINDOW_OPENGL);
+    SDL_Window* window = SDL_CreateWindow(
+        "SDL App", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1920, 1080, SDL_WINDOW_OPENGL);
     if (window == NULL) {
-	fprintf(stderr, "Failed to create main window\n");
-	SDL_Quit();
-	return 1;
+        LOG_ERROR << "Failed to create main window";
+        SDL_Quit();
+        return 1;
     }
 
-    printf("Initializing TTF\n");
-    if(TTF_Init()==-1) {
-	printf("TTF_Init: %s\n", TTF_GetError());
-	SDL_Quit();
-	return 1;
-    }
-    TTF_Font* font = TTF_OpenFont("/usr/share/fonts/liberation/LiberationSans-Regular.ttf", 24);
-    if (!font) {
-	printf("TTF_Init: %s\n", TTF_GetError());
-	SDL_Quit();
-	return 1;
-    }
+    // printf("Initializing TTF\n");
+    // if(TTF_Init()==-1) {
+    // 	printf("TTF_Init: %s\n", TTF_GetError());
+    // 	SDL_Quit();
+    // 	return 1;
+    // }
+    // TTF_Font* font = TTF_OpenFont("/usr/share/fonts/liberation/LiberationSans-Regular.ttf", 24);
+    // if (!font) {
+    // 	printf("TTF_Init: %s\n", TTF_GetError());
+    // 	SDL_Quit();
+    // 	return 1;
+    // }
 
-    SDL_Color White = {255, 255, 255};  
-    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "put your text here", White);
-    printf("Rendered surface\n");
+    // SDL_Color White = {255, 255, 255};
+    // SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "put your text here", White);
+    // printf("Rendered surface\n");
 
-    SDL_FreeSurface(surfaceMessage);
-    TTF_CloseFont(font);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-    
-    return 0;
+    // SDL_FreeSurface(surfaceMessage);
+    // TTF_CloseFont(font);
+    // SDL_DestroyWindow(window);
+    // SDL_Quit();
 
-    
+    // return 0;
+
     Renderer renderer(window);
     InputManager input_mgr(window);
     ChunkManager chunk_mgr;
     EntityAdmin admin(&input_mgr, &renderer, &chunk_mgr);
-    int camera_id = admin.createEntity<CameraComponent, TransformComponent, PlayerControlComponent>();
+    int camera_id
+        = admin.createEntity<CameraComponent, TransformComponent, PlayerControlComponent>();
 
     auto transform = admin.getComponent<TransformComponent>(camera_id);
     transform->m_position = glm::vec3(16, 40.0, -10.0);
@@ -87,12 +94,12 @@ int main()
 
     CameraMovementSystem cam_system(&admin);
     RenderSystem render_system(&admin);
-    
+
     if (renderer.initialize()) {
         return 1;
     }
 
-    printf("Transfering data to GPU...\n");
+    LOG_INFO << "Transfering data to GPU...";
 
     render_system.tick();
 
@@ -103,29 +110,29 @@ int main()
     steady_clock::time_point t = steady_clock::now();
 
     SDL_Event event;
-    printf("Starting main loop...\n");
-    for (should_run = 1; should_run; ) {
-	input_mgr.reset();
+    LOG_INFO << "Starting main loop...";
+    for (should_run = 1; should_run;) {
+        input_mgr.reset();
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE) {
                 should_run = 0;
                 break;
             }
-	    input_mgr.update(event);
+            input_mgr.update(event);
         }
-	cam_system.tick();
+        cam_system.tick();
 
-	renderer.draw();
+        renderer.draw();
 
-	auto t_draw = steady_clock::now();
-	dt = duration_cast<duration<double>>(t_draw - t);
-	if (dt < T) {
-	    milliseconds pause = duration_cast<milliseconds>(T - dt);
-	    std::this_thread::sleep_for(pause);
-	}
-	t = steady_clock::now();
+        auto t_draw = steady_clock::now();
+        dt = duration_cast<duration<double>>(t_draw - t);
+        if (dt < T) {
+            milliseconds pause = duration_cast<milliseconds>(T - dt);
+            std::this_thread::sleep_for(pause);
+        }
+        t = steady_clock::now();
     }
 
-    printf("Exiting...\n");
+    LOG_INFO << "Exiting...";
     return 0;
 }
