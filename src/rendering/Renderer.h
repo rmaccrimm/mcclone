@@ -48,6 +48,7 @@ private:
         GLuint vbo;
         GLuint ebo;
         GLuint tex;
+	GLuint depth_buffer;
     };
 
     std::map<std::string, GLuint> m_shader_prog_map;
@@ -59,8 +60,6 @@ private:
     GLdata m_screen;
 
     GLuint m_frame_buffer;
-    // TODO
-    GLuint m_depth_buffer;
 
     std::unique_ptr<GLfloat[]> m_vert_buff;
     std::unique_ptr<GLint[]> m_index_buff;

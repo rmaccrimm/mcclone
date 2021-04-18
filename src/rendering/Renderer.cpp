@@ -78,9 +78,14 @@ Renderer::~Renderer()
     }
 
     glDeleteTextures(1, &m_scene.tex);
+    glDeleteTextures(1, &m_screen.tex);
     glDeleteBuffers(1, &m_scene.ebo);
     glDeleteBuffers(1, &m_scene.vbo);
+    glDeleteBuffers(1, &m_screen.ebo);
+    glDeleteBuffers(1, &m_screen.vbo);
     glDeleteVertexArrays(1, &m_scene.vao);
+    glDeleteVertexArrays(1, &m_screen.vao);
+    glDeleteFramebuffers(1, &m_frame_buffer);
     SDL_GL_DeleteContext(m_context);
     SDL_DestroyWindow(m_window);
     SDL_Quit();
@@ -121,10 +126,6 @@ int Renderer::initialize()
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
-    // glEnable(GL_CULL_FACE);
-    // glEnable(GL_DEPTH_TEST);
-    // glFrontFace(GL_CW);
-    // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     if (initShader("solid_color") || initShader("screen"))
         return 1;
@@ -284,28 +285,37 @@ int Renderer::initGeometry()
 
 int Renderer::initTextures()
 {
+    LOG_INFO << "Creating screen texture";
     glGenTextures(1, &m_screen.tex);
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_screen.tex);
-
-    const char* img_path = "/home/rmaccrimmon/projects/mcclone/textures/Stylized_Grass_003_SD/"
-                           "Stylized_Grass_003_basecolor.jpg";
-
-    LOG_INFO << "Loading texture " << img_path;
-    int width, height, n;
-    unsigned char* data = stbi_load(img_path, &width, &height, &n, 0);
-    if (data == nullptr) {
-        LOG_ERROR << "Image loading failed";
-        return 1;
-    }
-    LOG_INFO << n << " components, " << width << " width, " << height << " height";
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    stbi_image_free(data);
+    LOG_INFO << "Creating depth buffer";
+    glGenTextures(1, &m_screen.depth_buffer);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_screen.depth_buffer);
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 1920, 1080, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    LOG_INFO << "Creating Framebuffer";
+
+    glGenFramebuffers(1, &m_frame_buffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_screen.tex, 0);
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_screen.depth_buffer, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        LOG_ERROR << "Framebuffer is not complete!";
+        return 1;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     return 0;
 }
@@ -339,31 +349,48 @@ void Renderer::setViewMatrix(glm::mat4 view_matrix) { m_view_matrix = view_matri
 
 void Renderer::draw()
 {
-    // glBindVertexArray(m_scene.vao);
-    // glBindBuffer(GL_ARRAY_BUFFER, m_scene.vbo);
+    /*
+       First pass - render to texture
+    */
+    glBindVertexArray(m_scene.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, m_scene.vbo);
     // TODO - don't do this every frame, only for updated chunks
-    // glBufferSubData(GL_ARRAY_BUFFER, 0, m_vert_buff_pos * sizeof(GLfloat), m_vert_buff.get());
-    // glBufferSubData(
-    // GL_ELEMENT_ARRAY_BUFFER, 0, m_index_buff_pos * sizeof(GLint), m_index_buff.get());
+    glBufferSubData(GL_ARRAY_BUFFER, 0, m_vert_buff_pos * sizeof(GLfloat), m_vert_buff.get());
+    glBufferSubData(
+        GL_ELEMENT_ARRAY_BUFFER, 0, m_index_buff_pos * sizeof(GLint), m_index_buff.get());
 
-    // auto shader_prog = m_shader_prog_map["solid_color"];
-    // glUseProgram(shader_prog);
+    auto shader_prog = m_shader_prog_map["solid_color"];
+    glUseProgram(shader_prog);
 
-    // GLint view_loc = glGetUniformLocation(shader_prog, "View");
-    // GLint proj_loc = glGetUniformLocation(shader_prog, "Projection");
+    GLint view_loc = glGetUniformLocation(shader_prog, "View");
+    GLint proj_loc = glGetUniformLocation(shader_prog, "Projection");
 
-    // auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
+    auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
 
-    // glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
-    // glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));
+    glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
+    glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));
 
-    // glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
 
     glViewport(0, 0, 1920, 1080);
-    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glFrontFace(GL_CW);
+    // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-    // glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    /*
+       Second pass - draw screen quad with rendered texture
+    */
+    glViewport(0, 0, 1920, 1080);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
 
     glBindVertexArray(m_screen.vao);
     auto shader = m_shader_prog_map["screen"];
