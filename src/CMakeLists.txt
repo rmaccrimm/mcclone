@@ -12,49 +12,49 @@ link_libraries(${GLEW_LIBRARIES})
 add_compile_definitions(PROJECT_ROOT="${PROJECT_SOURCE_DIR}")
 configure_file(${PROJECT_SOURCE_DIR}/include/config.h.in ${CMAKE_BINARY_DIR}/generated/config.h)
 
+include_directories(
+	renderer PRIVATE
+	${PROJECT_SOURCE_DIR}/src/
+	${PROJECT_SOURCE_DIR}/src/rendering
+	${CMAKE_BINARY_DIR}/generated/
+	${PROJECT_SOURCE_DIR}/include
+	SYSTEM INTERFACE  # Suppresses warnings from these files
+	${PROJECT_SOURCE_DIR}/include
+)
+
 add_library(
-	lib
+	renderer
 	rendering/Renderer.cpp
 	rendering/RenderSystem.cpp
-	WorldChunk.cpp
+)
+target_link_libraries(
+	renderer
+	GLEW::GLEW
+	${OPENGL_gl_LIBRARY}
+)
+	
+add_library(
+	ecs
+	WorldChunk.cpp	
 	ChunkManager.cpp
 	EntityAdmin.cpp
 	InputManager.cpp
 	CameraMovementSystem.cpp
 )
+
 add_executable(
 	main
 	main.cpp
 )
 target_link_libraries(
 	main
-	lib
+	ecs
+	renderer
 	SDL2::SDL2
 	${SDL2TTF_LIBRARY}
-	GLEW::GLEW
-	${OPENGL_gl_LIBRARY}
 	glm
 )
 target_compile_options(
-	main
-	PRIVATE -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors -Wlogical-op
-	-Wnull-dereference
+	main PRIVATE
+	-Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors -Wlogical-op -Wnull-dereference
 )
-target_include_directories(lib PRIVATE
-	${PROJECT_SOURCE_DIR}/src/
-	${PROJECT_SOURCE_DIR}/src/rendering
-	${CMAKE_BINARY_DIR}/generated/
-	${PROJECT_SOURCE_DIR}/include
-	SYSTEM INTERFACE
-	${PROJECT_SOURCE_DIR}/include
-)
-
-target_include_directories(main PRIVATE
-	${PROJECT_SOURCE_DIR}/src/
-	${PROJECT_SOURCE_DIR}/src/rendering
-	${CMAKE_BINARY_DIR}/generated/
-	${PROJECT_SOURCE_DIR}/include
-	SYSTEM INTERFACE
-	${PROJECT_SOURCE_DIR}/include
-)
-

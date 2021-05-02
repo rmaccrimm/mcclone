@@ -16,10 +16,7 @@ add_executable(
 target_link_libraries(
 	tests
 	PRIVATE
-	lib
+	ecs
 	Catch2::Catch2
-	SDL2::SDL2
-	GLEW::GLEW
-	${OPENGL_gl_LIBRARY} 
 )
 
