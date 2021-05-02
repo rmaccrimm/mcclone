@@ -3,8 +3,7 @@ project(mcclone)
 
 SET(
 	GCC_DEBUG_COMPILE_FLAGS 
-	"-fsanitize=address -O0  -pg -ggdb -Wall -Wextra -Wshadow -Wduplicated-cond -Wfatal-errors \
-	-Wlogical-op -Wnull-dereference --std=c++20 -I/usr/include/SDL2 -D_REENTRANT"
+	"-fsanitize=address -O0  -pg -ggdb -D_REENTRANT --std=c++20"
 )
 
 SET(GCC_DEBUG_LINK_FLAGS "-fsanitize=address -pthread")
