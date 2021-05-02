@@ -10,6 +10,8 @@
 #include <string>
 #include <map>
 
+#include <SDL2/SDL.h>
+
 #include "Vertex.h"
 
 class ChunkManager;
@@ -22,7 +24,7 @@ public:
 
     int initialize();
 
-    void draw();
+    void draw(SDL_Surface* surface);
 
     void clearBuffers();
 

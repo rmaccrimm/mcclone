@@ -32,14 +32,14 @@ const int VERT_BUFF_SIZE = 500 * (1 << 20);
 const int INDEX_BUFF_SIZE = 250 * (1 << 20);
 
 // clang-format off
-const float SCREEN_QUAD[] = {
+float screen_quad[][5] = {
 //   position    texture coords
-    -1,  1, 0,   0, 1,
-    -1, -1, 0,   0, 0,
-     1, -1, 0,   1, 0,
-    -1,  1, 0,   0, 1,
-     1, -1, 0,   1, 0,
-     1,  1, 0,   1, 1
+    {-1,  1, 0,   0, 1},
+    {-1, -1, 0,   0, 0},
+    { 1, -1, 0,   1, 0},
+    {-1,  1, 0,   0, 1},
+    { 1, -1, 0,   1, 0},
+    { 1,  1, 0,   1, 1}
 };
 // clang-format on
 
@@ -268,7 +268,7 @@ int Renderer::initGeometry()
     glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
 
     // Write quad vertex data to buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(SCREEN_QUAD), SCREEN_QUAD, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), nullptr, GL_STATIC_DRAW);
 
     // vertex positions
     glEnableVertexAttribArray(0);
@@ -292,6 +292,8 @@ int Renderer::initTextures()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     LOG_INFO << "Creating depth buffer";
     glGenTextures(1, &m_screen.depth_buffer);
@@ -347,7 +349,7 @@ void Renderer::copyVertexData(const std::array<Vertex, 4>& verts, const std::arr
 
 void Renderer::setViewMatrix(glm::mat4 view_matrix) { m_view_matrix = view_matrix; }
 
-void Renderer::draw()
+void Renderer::draw(SDL_Surface* surface)
 {
     /*
        First pass - render to texture
@@ -380,7 +382,7 @@ void Renderer::draw()
     glFrontFace(GL_CW);
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-    glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
+    // glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     /*
@@ -389,14 +391,45 @@ void Renderer::draw()
     glViewport(0, 0, 1920, 1080);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 
     glBindVertexArray(m_screen.vao);
     auto shader = m_shader_prog_map["screen"];
     glUseProgram(shader);
+
     GLint texture_loc = glGetUniformLocation(shader, "screen_texture");
     glUniform1i(texture_loc, 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_screen.tex);
+
+    // LOG_DEBUG << "w: " << (float)surface->w;
+    // LOG_DEBUG << "h: " << (float)surface->h;
+    
+    // Write quad vertex data to buffer
+    for (int i = 0; i < 6; i++) {
+	screen_quad[i][3] = screen_quad[i][3] == 0 ? 0 : 1920.0f / (float)surface->w;
+	screen_quad[i][4] = screen_quad[i][4] == 0 ? 0 : 1080.0f / (float)surface->h;
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), screen_quad, GL_STATIC_DRAW);
+
+    SDL_LockSurface(surface);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA,
+        surface->w,
+        surface->h,
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_INT_8_8_8_8_REV,
+        surface->pixels);
+
+    SDL_UnlockSurface(surface);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     SDL_GL_SwapWindow(m_window);
 }

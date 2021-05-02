@@ -30,6 +30,39 @@
 #include <thread>
 #include <unordered_map>
 
+void flip_surface(SDL_Surface* surface)
+{
+    SDL_LockSurface(surface);
+
+    int pitch = surface->pitch; // row size
+    char* temp = new char[pitch]; // intermediate buffer
+    char* pixels = (char*)surface->pixels;
+
+    for (int i = 0; i < surface->h / 2; ++i) {
+        // get pointers to the two rows to swap
+        char* row1 = pixels + i * pitch;
+        char* row2 = pixels + (surface->h - i - 1) * pitch;
+
+        // swap rows
+        memcpy(temp, row1, pitch);
+        memcpy(row1, row2, pitch);
+        memcpy(row2, temp, pitch);
+    }
+    
+    for (int i = 0; i < surface->h * surface->w; i++) {
+	int p = pixels[i];
+	unsigned int b = (p >> 24) & 0xff;
+	unsigned int g = (p >> 16) & 0xff;
+	unsigned int r = (p >> 8) & 0xff;
+	unsigned int a = p & 0xff;
+	pixels[i] = r << 24 | g << 16 | b << 8 | a;
+    }
+
+    delete[] temp;
+
+    SDL_UnlockSurface(surface);
+}
+
 int main()
 {
     // Initialize logger
@@ -53,29 +86,32 @@ int main()
         return 1;
     }
 
-    // printf("Initializing TTF\n");
-    // if(TTF_Init()==-1) {
-    // 	printf("TTF_Init: %s\n", TTF_GetError());
-    // 	SDL_Quit();
-    // 	return 1;
-    // }
-    // TTF_Font* font = TTF_OpenFont("/usr/share/fonts/liberation/LiberationSans-Regular.ttf", 24);
-    // if (!font) {
-    // 	printf("TTF_Init: %s\n", TTF_GetError());
-    // 	SDL_Quit();
-    // 	return 1;
-    // }
+    LOG_INFO << "Initializing TTF";
+    if (TTF_Init() == -1) {
+        LOG_ERROR << "TTF_Init: " << TTF_GetError();
+        SDL_Quit();
+        return 1;
+    }
+    TTF_Font* font = TTF_OpenFont("/usr/share/fonts/TTF/FiraCode-Regular.ttf", 16);
+    if (!font) {
+        LOG_ERROR << "TTF_Init: " << TTF_GetError();
+        SDL_Quit();
+        return 1;
+    }
 
-    // SDL_Color White = {255, 255, 255};
-    // SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "put your text here", White);
-    // printf("Rendered surface\n");
+    LOG_INFO << "Rendering text";
+    SDL_Color white = { 255, 255, 255, 255 };
 
-    // SDL_FreeSurface(surfaceMessage);
-    // TTF_CloseFont(font);
-    // SDL_DestroyWindow(window);
-    // SDL_Quit();
-
-    // return 0;
+    SDL_Surface* surface = TTF_RenderText_Blended_Wrapped(
+        font, "Here's some text here. Yep, just a whole lot of text baybeeeeee", white, 250);
+    TTF_CloseFont(font);
+    if (surface == nullptr) {
+        LOG_ERROR << "Failed to render text to surface";
+        SDL_Quit();
+        return 1;
+    }
+    flip_surface(surface);
+    LOG_INFO << "Created surface with format " << SDL_GetPixelFormatName(surface->format->format);
 
     Renderer renderer(window);
     InputManager input_mgr(window);
@@ -95,7 +131,7 @@ int main()
         return 1;
     }
 
-    render_system.tick();
+    // render_system.tick();
 
     using namespace std::chrono;
     double framerate = 60;
@@ -116,7 +152,7 @@ int main()
         }
         cam_system.tick();
 
-        renderer.draw();
+        renderer.draw(surface);
 
         auto t_draw = steady_clock::now();
         dt = duration_cast<duration<double>>(t_draw - t);
@@ -126,6 +162,9 @@ int main()
         }
         t = steady_clock::now();
     }
+
+    SDL_FreeSurface(surface);
+    SDL_DestroyWindow(window);
 
     LOG_INFO << "Exiting";
     return 0;
