@@ -2,7 +2,6 @@
  * 2017 SDL2 with OpenGL Boilerplate Code
  * Use this as you wish. Licensed under CC0. No attribution required.
  */
-#include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <glm/gtx/string_cast.hpp>
@@ -131,7 +130,7 @@ int main()
         return 1;
     }
 
-    // render_system.tick();
+    render_system.tick();
 
     using namespace std::chrono;
     double framerate = 60;

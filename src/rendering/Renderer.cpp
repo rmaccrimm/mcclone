@@ -32,14 +32,14 @@ const int VERT_BUFF_SIZE = 500 * (1 << 20);
 const int INDEX_BUFF_SIZE = 250 * (1 << 20);
 
 // clang-format off
-float screen_quad[][5] = {
+float screen_quad[] = {
 //   position    texture coords
-    {-1,  1, 0,   0, 1},
-    {-1, -1, 0,   0, 0},
-    { 1, -1, 0,   1, 0},
-    {-1,  1, 0,   0, 1},
-    { 1, -1, 0,   1, 0},
-    { 1,  1, 0,   1, 1}
+    -1,  1, 0,   0, 1,
+    -1, -1, 0,   0, 0,
+     1, -1, 0,   1, 0,
+    -1,  1, 0,   0, 1,
+     1, -1, 0,   1, 0,
+     1,  1, 0,   1, 1
 };
 // clang-format on
 
@@ -127,7 +127,7 @@ int Renderer::initialize()
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
 
-    if (initShader("solid_color") || initShader("screen"))
+    if (initShader("solid_color") || initShader("screen") || initShader("single_tex"))
         return 1;
     if (initGeometry())
         return 1;
@@ -247,16 +247,16 @@ int Renderer::initGeometry()
     // buffer is initially empty
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFF_SIZE, NULL, GL_STREAM_DRAW);
 
-    int stride = 9 * sizeof(GLfloat);
+    int stride = 8 * sizeof(GLfloat);
     // Bind vertex position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
     glEnableVertexAttribArray(0);
 
-    // Bind vertex color attribute
+    // Bind vertex normal attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
 
-    // Bind vertex normal attribute
+    // Bind vertex texture coordinates attribute
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(GLfloat)));
     glEnableVertexAttribArray(2);
 
@@ -268,7 +268,7 @@ int Renderer::initGeometry()
     glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
 
     // Write quad vertex data to buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), nullptr, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), screen_quad, GL_STATIC_DRAW);
 
     // vertex positions
     glEnableVertexAttribArray(0);
@@ -319,6 +319,38 @@ int Renderer::initTextures()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    if (loadGrassTexture()) {
+	return 1;
+    }
+
+    return 0;
+}
+
+int Renderer::loadGrassTexture() {
+    const char* img_path = "/home/rmaccrimmon/projects/mcclone/textures/Stylized_Grass_003_SD/"
+                           "Stylized_Grass_003_basecolor.jpg";
+
+    glGenTextures(1, &m_scene.tex);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_scene.tex);
+
+    LOG_INFO << "Loading texture " << img_path;
+    int width, height, n;
+    unsigned char* data = stbi_load(img_path, &width, &height, &n, 0);
+    if (data == nullptr) {
+        LOG_ERROR << "Image loading failed";
+        return 1;
+    }
+    LOG_INFO << n << " components, " << width << " width, " << height << " height";
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    stbi_image_free(data);
     return 0;
 }
 
@@ -330,7 +362,7 @@ void Renderer::clearBuffers()
 
 void Renderer::copyVertexData(const std::array<Vertex, 4>& verts, const std::array<int, 6>& inds)
 {
-    const int vertex_size = 9;
+    const int vertex_size = 8;
     for (auto it = inds.begin(); it != inds.end(); it++) {
         m_index_buff[m_index_buff_pos++] = *it + m_vert_buff_pos / vertex_size;
     }
@@ -338,12 +370,11 @@ void Renderer::copyVertexData(const std::array<Vertex, 4>& verts, const std::arr
         m_vert_buff[m_vert_buff_pos++] = it->position.x;
         m_vert_buff[m_vert_buff_pos++] = it->position.y;
         m_vert_buff[m_vert_buff_pos++] = it->position.z;
-        m_vert_buff[m_vert_buff_pos++] = it->color.r;
-        m_vert_buff[m_vert_buff_pos++] = it->color.g;
-        m_vert_buff[m_vert_buff_pos++] = it->color.b;
         m_vert_buff[m_vert_buff_pos++] = it->normal.x;
         m_vert_buff[m_vert_buff_pos++] = it->normal.y;
         m_vert_buff[m_vert_buff_pos++] = it->normal.z;
+	m_vert_buff[m_vert_buff_pos++] = it->texcoords.x;
+        m_vert_buff[m_vert_buff_pos++] = it->texcoords.y;
     }
 }
 
@@ -361,16 +392,21 @@ void Renderer::draw(SDL_Surface* surface)
     glBufferSubData(
         GL_ELEMENT_ARRAY_BUFFER, 0, m_index_buff_pos * sizeof(GLint), m_index_buff.get());
 
-    auto shader_prog = m_shader_prog_map["solid_color"];
+    auto shader_prog = m_shader_prog_map["single_tex"];
     glUseProgram(shader_prog);
 
     GLint view_loc = glGetUniformLocation(shader_prog, "View");
     GLint proj_loc = glGetUniformLocation(shader_prog, "Projection");
+    GLint tex_loc = glGetUniformLocation(shader_prog, "diffuse_texture");
 
     auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
 
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));
+    
+    glUniform1i(tex_loc, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_scene.tex);
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
 
@@ -382,9 +418,10 @@ void Renderer::draw(SDL_Surface* surface)
     glFrontFace(GL_CW);
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-    // glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    
     /*
        Second pass - draw screen quad with rendered texture
     */
@@ -400,36 +437,41 @@ void Renderer::draw(SDL_Surface* surface)
     auto shader = m_shader_prog_map["screen"];
     glUseProgram(shader);
 
+    glBindTexture(GL_TEXTURE_2D, m_screen.tex);
     GLint texture_loc = glGetUniformLocation(shader, "screen_texture");
     glUniform1i(texture_loc, 0);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_screen.tex);
+    // glActiveTexture(GL_TEXTURE0);
+    // glBindTexture(GL_TEXTURE_2D, m_screen.tex);
+
+
+
+    
 
     // LOG_DEBUG << "w: " << (float)surface->w;
     // LOG_DEBUG << "h: " << (float)surface->h;
     
     // Write quad vertex data to buffer
-    for (int i = 0; i < 6; i++) {
-	screen_quad[i][3] = screen_quad[i][3] == 0 ? 0 : 1920.0f / (float)surface->w;
-	screen_quad[i][4] = screen_quad[i][4] == 0 ? 0 : 1080.0f / (float)surface->h;
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), screen_quad, GL_STATIC_DRAW);
+    // for (int i = 0; i < 6; i++) {
+	// screen_quad[i][3] = screen_quad[i][3] == 0 ? 0 : 1920.0f / (float)surface->w;
+	// screen_quad[i][4] = screen_quad[i][4] == 0 ? 0 : 1080.0f / (float)surface->h;
+    // }
+    // glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), screen_quad, GL_STATIC_DRAW);
 
-    SDL_LockSurface(surface);
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        surface->w,
-        surface->h,
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_INT_8_8_8_8_REV,
-        surface->pixels);
+    // SDL_LockSurface(surface);
+    // glTexImage2D(
+    //     GL_TEXTURE_2D,
+    //     0,
+    //     GL_RGBA,
+    //     surface->w,
+    //     surface->h,
+    //     0,
+    //     GL_RGBA,
+    //     GL_UNSIGNED_INT_8_8_8_8_REV,
+    //     surface->pixels);
 
-    SDL_UnlockSurface(surface);
+    // SDL_UnlockSurface(surface);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     SDL_GL_SwapWindow(m_window);
 }

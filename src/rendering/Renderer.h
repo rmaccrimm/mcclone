@@ -42,6 +42,8 @@ private:
     int initShader(std::string shader_name);
     void useShader(std::string shader_name);
 
+    int loadGrassTexture();
+
     int m_SCREEN_W;
     int m_SCREEN_H;
 
