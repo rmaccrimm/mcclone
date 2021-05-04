@@ -5,13 +5,14 @@
 #include <SDL2/SDL.h>
 #include <array>
 #include <glm/mat4x4.hpp>
-#include <memory>
-#include <vector>
-#include <string>
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include <SDL2/SDL.h>
 
+#include "RenderObject.h"
 #include "Vertex.h"
 
 class ChunkManager;
@@ -24,13 +25,22 @@ public:
 
     int initialize();
 
-    void draw(SDL_Surface* surface);
+    /*
+      Create a VAO/VBO target for vertex data
+    */
+    unsigned int newRenderObject();
 
-    void clearBuffers();
+    /*
+      (Re-)allocate and upload vertex data
+    */
+    void updateRenderObject(unsigned int obj_id, RenderObject& new_obj);
+
+    /*
+      Render the scene
+    */
+    void draw();
 
     void setViewMatrix(glm::mat4 view_matrix);
-
-    void copyVertexData(const std::array<Vertex, 4>& verts, const std::array<int, 6>& inds);
 
     void reset();
 
@@ -44,6 +54,8 @@ private:
 
     int loadGrassTexture();
 
+    void drawObject(unsigned int obj_id);
+
     int m_SCREEN_W;
     int m_SCREEN_H;
 
@@ -52,24 +64,20 @@ private:
         GLuint vbo;
         GLuint ebo;
         GLuint tex;
-	GLuint depth_buffer;
+        GLuint shader_prog;
+        // TODO - remove this
+        GLuint depth_buffer;
     };
 
     std::map<std::string, GLuint> m_shader_prog_map;
+    std::map<unsigned int, GLdata> m_render_data_map;
+    std::vector<GLuint> m_textures;
 
     SDL_Window* m_window;
     SDL_GLContext m_context;
 
-    GLdata m_scene;
     GLdata m_screen;
-
     GLuint m_frame_buffer;
-
-    std::unique_ptr<GLfloat[]> m_vert_buff;
-    std::unique_ptr<GLint[]> m_index_buff;
-    int m_vert_buff_pos;
-    int m_index_buff_pos;
-
     glm::mat4 m_view_matrix;
 };
 

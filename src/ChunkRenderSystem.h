@@ -1,14 +1,14 @@
-#ifndef _RENDERSYSTEM_H_
-#define _RENDERSYSTEM_H_
+#ifndef _CHUNKRENDERSYSTEM_H_
+#define _CHUNKRENDERSYSTEM_H_
 
 class EntityAdmin;
 
 /* Should eventually inherit from a System base class
  */
-class RenderSystem
+class ChunkRenderSystem
 {
 public:
-    RenderSystem(EntityAdmin* admin);
+    ChunkRenderSystem(EntityAdmin* admin);
     void tick();
 private:
     EntityAdmin* m_admin;

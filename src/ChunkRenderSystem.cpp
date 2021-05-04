@@ -5,8 +5,9 @@
 
 #include "ChunkManager.h"
 #include "EntityAdmin.h"
-#include "RenderSystem.h"
+#include "ChunkRenderSystem.h"
 #include "Renderer.h"
+#include "RenderObject.h"
 #include "Vertex.h"
 #include "WorldChunk.h"
 #include "components/Component.h"
@@ -77,11 +78,11 @@ const glm::vec2 TEX_COORDS[4] = {
 };
 // clang-format on
 
-RenderSystem::RenderSystem(EntityAdmin* admin) : m_admin { admin } { }
+ChunkRenderSystem::ChunkRenderSystem(EntityAdmin* admin) : m_admin { admin } { }
 
 const glm::vec3 colors[2] = { glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.3, 0.3, 0.3) };
 
-void RenderSystem::tick()
+void ChunkRenderSystem::tick()
 {
     LOG_INFO << "Transfering data to GPU";
     auto chunk_mgr = m_admin->getChunkManager();

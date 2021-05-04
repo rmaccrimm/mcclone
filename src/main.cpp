@@ -21,7 +21,7 @@
 #include "InputManager.h"
 #include "WorldChunk.h"
 #include "components/Component.h"
-#include "rendering/RenderSystem.h"
+#include "ChunkRenderSystem.h"
 #include "rendering/Renderer.h"
 
 #include <chrono>
@@ -124,7 +124,7 @@ int main()
     transform->m_forward = glm::vec3(16.0, 10.0, 16.0) - transform->m_position;
 
     CameraMovementSystem cam_system(&admin);
-    RenderSystem render_system(&admin);
+    ChunkRenderSystem render_system(&admin);
 
     if (renderer.initialize()) {
         return 1;

@@ -25,7 +25,6 @@ include_directories(
 add_library(
 	renderer
 	rendering/Renderer.cpp
-	rendering/RenderSystem.cpp
 )
 target_link_libraries(
 	renderer
@@ -40,6 +39,7 @@ add_library(
 	EntityAdmin.cpp
 	InputManager.cpp
 	CameraMovementSystem.cpp
+	ChunkRenderSystem.cpp
 )
 
 add_executable(

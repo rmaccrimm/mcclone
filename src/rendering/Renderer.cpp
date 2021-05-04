@@ -60,10 +60,6 @@ void GLAPIENTRY MessageCallback(
 Renderer::Renderer(SDL_Window* window)
 {
     m_window = window;
-    m_vert_buff = std::unique_ptr<GLfloat[]>(new GLfloat[VERT_BUFF_SIZE]);
-    m_vert_buff_pos = 0;
-    m_index_buff = std::unique_ptr<GLint[]>(new GLint[INDEX_BUFF_SIZE]);
-    m_index_buff_pos = 0;
     m_view_matrix = glm::lookAt(
         glm::vec3(-20.0f, 20.0f, -4.0f), glm::vec3(16.0f, 5.0f, 16.0f), glm::vec3(0.0f, 1.0f, 0.0));
 }
@@ -77,15 +73,20 @@ Renderer::~Renderer()
         glDeleteProgram(p.second);
     }
 
-    glDeleteTextures(1, &m_scene.tex);
+    for (auto& p : m_render_data_map) {
+        auto data = p.second;
+        glDeleteTextures(1, &data.tex);
+        glDeleteBuffers(1, &data.ebo);
+        glDeleteBuffers(1, &data.vbo);
+        glDeleteVertexArrays(1, &data.vao);
+    }
+
     glDeleteTextures(1, &m_screen.tex);
-    glDeleteBuffers(1, &m_scene.ebo);
-    glDeleteBuffers(1, &m_scene.vbo);
     glDeleteBuffers(1, &m_screen.ebo);
     glDeleteBuffers(1, &m_screen.vbo);
-    glDeleteVertexArrays(1, &m_scene.vao);
     glDeleteVertexArrays(1, &m_screen.vao);
     glDeleteFramebuffers(1, &m_frame_buffer);
+
     SDL_GL_DeleteContext(m_context);
     SDL_DestroyWindow(m_window);
     SDL_Quit();
@@ -171,9 +172,6 @@ int loadShader(std::string fname, GLuint& shader_id, GLuint shader_type)
     return 0;
 }
 
-/*
- * Initialize Shaders
- */
 int Renderer::initShader(std::string shader_name)
 {
     GLuint vert_shader;
@@ -222,47 +220,9 @@ int Renderer::initShader(std::string shader_name)
     return 0;
 }
 
-/*
- * Initialize Geometry
- */
 int Renderer::initGeometry()
 {
-    // TODO - somehow make this more generic? Might only need 2 vaos though
-    glGenVertexArrays(1, &m_scene.vao);
     glGenVertexArrays(1, &m_screen.vao);
-
-    /*
-      Main scene rendering vertex data
-    */
-    glBindVertexArray(m_scene.vao);
-
-    // Allocate vertex buffer
-    glGenBuffers(1, &m_scene.vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_scene.vbo);
-    glBufferData(GL_ARRAY_BUFFER, VERT_BUFF_SIZE, NULL, GL_STREAM_DRAW);
-
-    // Allocate element buffer
-    glGenBuffers(1, &m_scene.ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_scene.ebo);
-    // buffer is initially empty
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_BUFF_SIZE, NULL, GL_STREAM_DRAW);
-
-    int stride = 8 * sizeof(GLfloat);
-    // Bind vertex position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Bind vertex normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-
-    // Bind vertex texture coordinates attribute
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(2);
-
-    /*
-      Screen quad rendering vertex data
-    */
     glBindVertexArray(m_screen.vao);
     glGenBuffers(1, &m_screen.vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
@@ -320,19 +280,23 @@ int Renderer::initTextures()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     if (loadGrassTexture()) {
-	return 1;
+        return 1;
     }
 
     return 0;
 }
 
-int Renderer::loadGrassTexture() {
+int Renderer::loadGrassTexture()
+{
     const char* img_path = "/home/rmaccrimmon/projects/mcclone/textures/Stylized_Grass_003_SD/"
                            "Stylized_Grass_003_basecolor.jpg";
 
-    glGenTextures(1, &m_scene.tex);
+    GLuint new_tex;
+    glGenTextures(1, &new_tex);
+    m_textures.push_back(new_tex);
+
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_scene.tex);
+    glBindTexture(GL_TEXTURE_2D, new_tex);
 
     LOG_INFO << "Loading texture " << img_path;
     int width, height, n;
@@ -354,59 +318,79 @@ int Renderer::loadGrassTexture() {
     return 0;
 }
 
-void Renderer::clearBuffers()
+unsigned int Renderer::newRenderObject()
 {
-    m_vert_buff_pos = 0;
-    m_index_buff_pos = 0;
+    GLdata obj;
+    unsigned int id = __COUNTER__;
+
+    glGenVertexArrays(1, &obj.vao);
+    glGenBuffers(1, &obj.vbo);
+    glGenBuffers(1, &obj.ebo);
+
+    glBindVertexArray(obj.vao);
+    int stride = 8 * sizeof(GLfloat);
+    // Bind vertex position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Bind vertex normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+
+    // Bind vertex texture coordinates attribute
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
+
+    m_render_data_map[id] = obj;
+    return id;
 }
 
-void Renderer::copyVertexData(const std::array<Vertex, 4>& verts, const std::array<int, 6>& inds)
+void Renderer::updateRenderObject(unsigned int obj_id, RenderObject& new_obj)
 {
-    const int vertex_size = 8;
-    for (auto it = inds.begin(); it != inds.end(); it++) {
-        m_index_buff[m_index_buff_pos++] = *it + m_vert_buff_pos / vertex_size;
-    }
-    for (auto it = verts.begin(); it != verts.end(); it++) {
-        m_vert_buff[m_vert_buff_pos++] = it->position.x;
-        m_vert_buff[m_vert_buff_pos++] = it->position.y;
-        m_vert_buff[m_vert_buff_pos++] = it->position.z;
-        m_vert_buff[m_vert_buff_pos++] = it->normal.x;
-        m_vert_buff[m_vert_buff_pos++] = it->normal.y;
-        m_vert_buff[m_vert_buff_pos++] = it->normal.z;
-	m_vert_buff[m_vert_buff_pos++] = it->texcoords.x;
-        m_vert_buff[m_vert_buff_pos++] = it->texcoords.y;
-    }
+    auto& data = m_render_data_map[obj_id];
+
+    glBindVertexArray(data.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, data.vbo);
+
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        new_obj.vertices.size() * sizeof(Vertex),
+        new_obj.vertices.data(),
+        GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.ebo);
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        new_obj.indices.size() * sizeof(unsigned int),
+        new_obj.indices.data(),
+        GL_STREAM_DRAW);
+
+    data.shader_prog = m_shader_prog_map[new_obj.material.shader_name];
 }
 
 void Renderer::setViewMatrix(glm::mat4 view_matrix) { m_view_matrix = view_matrix; }
 
-void Renderer::draw(SDL_Surface* surface)
+void Renderer::drawObject(unsigned int obj_id)
 {
-    /*
-       First pass - render to texture
-    */
-    glBindVertexArray(m_scene.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, m_scene.vbo);
-    // TODO - don't do this every frame, only for updated chunks
-    glBufferSubData(GL_ARRAY_BUFFER, 0, m_vert_buff_pos * sizeof(GLfloat), m_vert_buff.get());
-    glBufferSubData(
-        GL_ELEMENT_ARRAY_BUFFER, 0, m_index_buff_pos * sizeof(GLint), m_index_buff.get());
+    GLdata& data = m_render_data_map[obj_id];
 
-    auto shader_prog = m_shader_prog_map["single_tex"];
-    glUseProgram(shader_prog);
+    glBindVertexArray(data.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, data.vbo);
 
-    GLint view_loc = glGetUniformLocation(shader_prog, "View");
-    GLint proj_loc = glGetUniformLocation(shader_prog, "Projection");
-    GLint tex_loc = glGetUniformLocation(shader_prog, "diffuse_texture");
+    glUseProgram(data.shader_prog);
+
+    GLint view_loc = glGetUniformLocation(data.shader_prog, "View");
+    GLint proj_loc = glGetUniformLocation(data.shader_prog, "Projection");
+    GLint tex_loc = glGetUniformLocation(data.shader_prog, "diffuse_texture");
 
     auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
 
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));
-    
+
     glUniform1i(tex_loc, 0);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_scene.tex);
+    glBindTexture(GL_TEXTURE_2D, data.tex);
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
 
@@ -416,12 +400,20 @@ void Renderer::draw(SDL_Surface* surface)
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glFrontFace(GL_CW);
-    // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-    glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, 0, GL_UNSIGNED_INT, nullptr);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
-    
+void Renderer::draw()
+{
+    /*
+       First pass - render all VAOs to texture
+    */
+    for (auto& p : m_render_data_map) {
+        drawObject(p.first);
+    }
+
     /*
        Second pass - draw screen quad with rendered texture
     */
@@ -441,37 +433,6 @@ void Renderer::draw(SDL_Surface* surface)
     GLint texture_loc = glGetUniformLocation(shader, "screen_texture");
     glUniform1i(texture_loc, 0);
 
-    // glActiveTexture(GL_TEXTURE0);
-    // glBindTexture(GL_TEXTURE_2D, m_screen.tex);
-
-
-
-    
-
-    // LOG_DEBUG << "w: " << (float)surface->w;
-    // LOG_DEBUG << "h: " << (float)surface->h;
-    
-    // Write quad vertex data to buffer
-    // for (int i = 0; i < 6; i++) {
-	// screen_quad[i][3] = screen_quad[i][3] == 0 ? 0 : 1920.0f / (float)surface->w;
-	// screen_quad[i][4] = screen_quad[i][4] == 0 ? 0 : 1080.0f / (float)surface->h;
-    // }
-    // glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), screen_quad, GL_STATIC_DRAW);
-
-    // SDL_LockSurface(surface);
-    // glTexImage2D(
-    //     GL_TEXTURE_2D,
-    //     0,
-    //     GL_RGBA,
-    //     surface->w,
-    //     surface->h,
-    //     0,
-    //     GL_RGBA,
-    //     GL_UNSIGNED_INT_8_8_8_8_REV,
-    //     surface->pixels);
-
-    // SDL_UnlockSurface(surface);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     SDL_GL_SwapWindow(m_window);
 }
