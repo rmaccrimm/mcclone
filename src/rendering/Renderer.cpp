@@ -320,15 +320,17 @@ int Renderer::initTextures()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     if (loadGrassTexture()) {
-	return 1;
+        return 1;
     }
 
     return 0;
 }
 
-int Renderer::loadGrassTexture() {
-    const char* img_path = "/home/rmaccrimmon/projects/mcclone/textures/Stylized_Grass_003_SD/"
-                           "Stylized_Grass_003_basecolor.jpg";
+int Renderer::loadGrassTexture()
+{
+    const char* img_path = "/home/rmaccrimmon/projects/mcclone/textures/GrassSide.png";
+    // const char* img_path = "/home/rmaccrimmon/projects/mcclone/textures/Stylized_Grass_003_SD/"
+                           // "Stylized_Grass_003_basecolor.jpg";
 
     glGenTextures(1, &m_scene.tex);
     glActiveTexture(GL_TEXTURE0);
@@ -343,9 +345,9 @@ int Renderer::loadGrassTexture() {
     }
     LOG_INFO << n << " components, " << width << " width, " << height << " height";
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -373,7 +375,7 @@ void Renderer::copyVertexData(const std::array<Vertex, 4>& verts, const std::arr
         m_vert_buff[m_vert_buff_pos++] = it->normal.x;
         m_vert_buff[m_vert_buff_pos++] = it->normal.y;
         m_vert_buff[m_vert_buff_pos++] = it->normal.z;
-	m_vert_buff[m_vert_buff_pos++] = it->texcoords.x;
+        m_vert_buff[m_vert_buff_pos++] = it->texcoords.x;
         m_vert_buff[m_vert_buff_pos++] = it->texcoords.y;
     }
 }
@@ -403,7 +405,7 @@ void Renderer::draw(SDL_Surface* surface)
 
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));
-    
+
     glUniform1i(tex_loc, 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_scene.tex);
@@ -421,7 +423,6 @@ void Renderer::draw(SDL_Surface* surface)
     glDrawElements(GL_TRIANGLES, m_index_buff_pos, GL_UNSIGNED_INT, NULL);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    
     /*
        Second pass - draw screen quad with rendered texture
     */
@@ -444,17 +445,13 @@ void Renderer::draw(SDL_Surface* surface)
     // glActiveTexture(GL_TEXTURE0);
     // glBindTexture(GL_TEXTURE_2D, m_screen.tex);
 
-
-
-    
-
     // LOG_DEBUG << "w: " << (float)surface->w;
     // LOG_DEBUG << "h: " << (float)surface->h;
-    
+
     // Write quad vertex data to buffer
     // for (int i = 0; i < 6; i++) {
-	// screen_quad[i][3] = screen_quad[i][3] == 0 ? 0 : 1920.0f / (float)surface->w;
-	// screen_quad[i][4] = screen_quad[i][4] == 0 ? 0 : 1080.0f / (float)surface->h;
+    // screen_quad[i][3] = screen_quad[i][3] == 0 ? 0 : 1920.0f / (float)surface->w;
+    // screen_quad[i][4] = screen_quad[i][4] == 0 ? 0 : 1080.0f / (float)surface->h;
     // }
     // glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
     // glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), screen_quad, GL_STATIC_DRAW);

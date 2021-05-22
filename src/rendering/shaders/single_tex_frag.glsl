@@ -10,10 +10,10 @@ out vec4 fragColor;
 void main()                                                                 
 {
     const vec3 lightDir = vec3(-0.5, 0.8, 0);
-    const float ambient = 0.2;
+    const float ambient = 0.4;
     
     float diff = max(dot(normal, lightDir), 0.0);
-    float intensity = min(diff + ambient, 1.0);
+    float intensity = min(max(diff, ambient), 1.0);
 
     vec4 tex = texture(diffuse_texture, texcoords);
     
