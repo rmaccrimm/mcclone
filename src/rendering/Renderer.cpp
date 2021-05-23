@@ -288,8 +288,8 @@ int Renderer::initTextures()
 
 int Renderer::loadGrassTexture()
 {
-    const char* img_path = "/home/rmaccrimmon/projects/mcclone/textures/Stylized_Grass_003_SD/"
-                           "Stylized_Grass_003_basecolor.jpg";
+
+    const char* img_path = "/home/rmaccrimmon/projects/mcclone/textures/GrassSide.png";
 
     GLuint new_tex;
     glGenTextures(1, &new_tex);
@@ -307,9 +307,9 @@ int Renderer::loadGrassTexture()
     }
     LOG_INFO << n << " components, " << width << " width, " << height << " height";
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -347,6 +347,7 @@ unsigned int Renderer::newRenderObject()
 
 void Renderer::updateRenderObject(unsigned int obj_id, RenderObject& new_obj)
 {
+<<<<<<< HEAD
     auto& data = m_render_data_map[obj_id];
 
     glBindVertexArray(data.vao);
@@ -366,6 +367,22 @@ void Renderer::updateRenderObject(unsigned int obj_id, RenderObject& new_obj)
         GL_STREAM_DRAW);
 
     data.shader_prog = m_shader_prog_map[new_obj.material.shader_name];
+=======
+    const int vertex_size = 8;
+    for (auto it = inds.begin(); it != inds.end(); it++) {
+        m_index_buff[m_index_buff_pos++] = *it + m_vert_buff_pos / vertex_size;
+    }
+    for (auto it = verts.begin(); it != verts.end(); it++) {
+        m_vert_buff[m_vert_buff_pos++] = it->position.x;
+        m_vert_buff[m_vert_buff_pos++] = it->position.y;
+        m_vert_buff[m_vert_buff_pos++] = it->position.z;
+        m_vert_buff[m_vert_buff_pos++] = it->normal.x;
+        m_vert_buff[m_vert_buff_pos++] = it->normal.y;
+        m_vert_buff[m_vert_buff_pos++] = it->normal.z;
+        m_vert_buff[m_vert_buff_pos++] = it->texcoords.x;
+        m_vert_buff[m_vert_buff_pos++] = it->texcoords.y;
+    }
+>>>>>>> temp
 }
 
 void Renderer::setViewMatrix(glm::mat4 view_matrix) { m_view_matrix = view_matrix; }
@@ -433,6 +450,36 @@ void Renderer::draw()
     GLint texture_loc = glGetUniformLocation(shader, "screen_texture");
     glUniform1i(texture_loc, 0);
 
+<<<<<<< HEAD
+=======
+    // glActiveTexture(GL_TEXTURE0);
+    // glBindTexture(GL_TEXTURE_2D, m_screen.tex);
+
+    // LOG_DEBUG << "w: " << (float)surface->w;
+    // LOG_DEBUG << "h: " << (float)surface->h;
+
+    // Write quad vertex data to buffer
+    // for (int i = 0; i < 6; i++) {
+    // screen_quad[i][3] = screen_quad[i][3] == 0 ? 0 : 1920.0f / (float)surface->w;
+    // screen_quad[i][4] = screen_quad[i][4] == 0 ? 0 : 1080.0f / (float)surface->h;
+    // }
+    // glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), screen_quad, GL_STATIC_DRAW);
+
+    // SDL_LockSurface(surface);
+    // glTexImage2D(
+    //     GL_TEXTURE_2D,
+    //     0,
+    //     GL_RGBA,
+    //     surface->w,
+    //     surface->h,
+    //     0,
+    //     GL_RGBA,
+    //     GL_UNSIGNED_INT_8_8_8_8_REV,
+    //     surface->pixels);
+
+    // SDL_UnlockSurface(surface);
+>>>>>>> temp
     glDrawArrays(GL_TRIANGLES, 0, 6);
     SDL_GL_SwapWindow(m_window);
 }

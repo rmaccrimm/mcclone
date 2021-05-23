@@ -1,5 +1,6 @@
 #ifndef _RENDEROBJECT_H_
-#define _RENDERDATA_H_
+#define _RENDEROBJECT_H_
+
 
 #include <vector>
 
@@ -13,4 +14,4 @@ struct RenderObject
     Material material;
 };
 
-#endif /* _RENDERDATA_H_ */
+#endif /* _RENDEROBJECT_H_ */
