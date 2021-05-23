@@ -347,7 +347,6 @@ unsigned int Renderer::newRenderObject()
 
 void Renderer::updateRenderObject(unsigned int obj_id, RenderObject& new_obj)
 {
-<<<<<<< HEAD
     auto& data = m_render_data_map[obj_id];
 
     glBindVertexArray(data.vao);
@@ -367,22 +366,6 @@ void Renderer::updateRenderObject(unsigned int obj_id, RenderObject& new_obj)
         GL_STREAM_DRAW);
 
     data.shader_prog = m_shader_prog_map[new_obj.material.shader_name];
-=======
-    const int vertex_size = 8;
-    for (auto it = inds.begin(); it != inds.end(); it++) {
-        m_index_buff[m_index_buff_pos++] = *it + m_vert_buff_pos / vertex_size;
-    }
-    for (auto it = verts.begin(); it != verts.end(); it++) {
-        m_vert_buff[m_vert_buff_pos++] = it->position.x;
-        m_vert_buff[m_vert_buff_pos++] = it->position.y;
-        m_vert_buff[m_vert_buff_pos++] = it->position.z;
-        m_vert_buff[m_vert_buff_pos++] = it->normal.x;
-        m_vert_buff[m_vert_buff_pos++] = it->normal.y;
-        m_vert_buff[m_vert_buff_pos++] = it->normal.z;
-        m_vert_buff[m_vert_buff_pos++] = it->texcoords.x;
-        m_vert_buff[m_vert_buff_pos++] = it->texcoords.y;
-    }
->>>>>>> temp
 }
 
 void Renderer::setViewMatrix(glm::mat4 view_matrix) { m_view_matrix = view_matrix; }
