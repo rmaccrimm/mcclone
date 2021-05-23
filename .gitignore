@@ -2,6 +2,7 @@
 build/
 debug/
 cmake/
+blender/
 .*/
 !/.gitignore
 #*
