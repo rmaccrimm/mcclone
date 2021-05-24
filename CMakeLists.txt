@@ -5,6 +5,10 @@ SET(
 	GCC_DEBUG_COMPILE_FLAGS 
 	"-fsanitize=address -O0  -pg -ggdb -D_REENTRANT --std=c++20"
 )
+SET(
+	GCC_RELEASE_COMPILE_FLAGS 
+	"-Ofast -D_REENTRANT --std=c++20"
+)
 
 SET(GCC_DEBUG_LINK_FLAGS "-fsanitize=address -pthread")
 SET(GCC_RELEASE_COMPILE_FLAGS "-O3 -g --std=c++20")
