@@ -1,5 +1,6 @@
 
 #include <array>
+#include <map>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <plog/Log.h>
@@ -88,7 +89,7 @@ const std::vector<Vertex> CUBE = {
       .texcoords = { 0.000000, 1.000000 } },
 };
 
-const std::vector<unsigned int> indices = {
+const std::vector<unsigned int> INDICES = {
     0, 1,  2, 3, 4,  5, 6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
     0, 18, 1, 3, 19, 4, 12, 20, 13, 6, 21, 7,  15, 22, 16, 9,  23, 10,
 };
@@ -104,18 +105,18 @@ void ChunkRenderSystem::loadCubeFaces(glm::vec3 cube_position, RenderObject& tar
     bool vert_used[24] = { 0 };
     std::vector<unsigned int> indices_used;
     for (int i = 0; i < 36; i += 3) {
-        auto& v = CUBE[indices[i]];
+        auto& v = CUBE[INDICES[i]];
         if (chunk_mgr->checkNeighbour(cube_position, v.normal)) {
             continue;
         }
         for (int j = 0; j < 3; j++) {
-            int index = indices[i + j];
+            int index = INDICES[i + j];
             indices_used.push_back(index);
             vert_used[index] = true;
         }
     }
 
-    int index_map[24] = { -1 };
+    std::map<int, int> index_map;
     int next = 0;
     for (int i = 0; i < 24; i++) {
         if (vert_used[i]) {
@@ -127,7 +128,7 @@ void ChunkRenderSystem::loadCubeFaces(glm::vec3 cube_position, RenderObject& tar
         }
     }
     for (auto i : indices_used) {
-        target.indices.push_back(starting_index + index_map[i]);
+        target.indices.push_back(starting_index + index_map.at(i));
     }
 }
 
@@ -138,8 +139,7 @@ void ChunkRenderSystem::tick()
     auto renderer = m_admin->getRenderer();
 
     for (auto const& chunk : chunk_mgr->m_chunks) {
-        LOG_INFO << "Loading Chunk (" << chunk->m_position.x << ", " << chunk->m_position.z
-                 << ")";
+        LOG_INFO << "Loading Chunk (" << chunk->m_position.x << ", " << chunk->m_position.z << ")";
         RenderObject render_obj;
         for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
             for (int x = 0; x < WorldChunk::SPAN_X; x++) {

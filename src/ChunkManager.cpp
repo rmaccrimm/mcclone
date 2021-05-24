@@ -33,7 +33,7 @@ bool ChunkManager::checkNeighbour(glm::vec3 position, glm::vec3 direction)
     if (chunk_index < 0 || chunk_index >= WORLD_SIZE * WORLD_SIZE) {
 	return false;
     }
-    auto chunk = m_chunks[chunk_index];
+    auto const &chunk = m_chunks[chunk_index];
 
     return (cube_coord.x >= 0 && cube_coord.x < WORLD_SIZE * WorldChunk::SPAN_X)
         && (cube_coord.z >= 0 && cube_coord.z < WORLD_SIZE * WorldChunk::SPAN_Z)

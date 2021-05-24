@@ -229,7 +229,7 @@ int Renderer::initGeometry()
     glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
 
     // Write quad vertex data to buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), screen_quad, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), screen_quad, GL_STATIC_DRAW);
 
     // vertex positions
     glEnableVertexAttribArray(0);
@@ -359,14 +359,14 @@ void Renderer::updateRenderObject(unsigned int obj_id, RenderObject& new_obj)
         GL_ARRAY_BUFFER,
         new_obj.vertices.size() * sizeof(Vertex),
         new_obj.vertices.data(),
-        GL_STREAM_DRAW);
+        GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.ebo);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
         new_obj.indices.size() * sizeof(unsigned int),
         new_obj.indices.data(),
-        GL_STREAM_DRAW);
+        GL_STATIC_DRAW);
 
     data.num_indices = new_obj.indices.size();
 
