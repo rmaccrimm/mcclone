@@ -374,8 +374,8 @@ void Renderer::updateRenderObject(unsigned int obj_id, RenderObject& new_obj)
     data.shader_prog = m_shader_prog_map.at("single_tex");
     data.tex = m_textures[0];
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // glBindVertexArray(0);
 }
 
 void Renderer::setViewMatrix(glm::mat4 view_matrix) { m_view_matrix = view_matrix; }
@@ -402,6 +402,11 @@ void Renderer::drawObject(unsigned int obj_id)
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, data.tex);
 
+    glDrawElements(GL_TRIANGLES, data.num_indices, GL_UNSIGNED_INT, 0);
+}
+
+void Renderer::draw()
+{
     glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
 
     glViewport(0, 0, 1920, 1080);
@@ -410,13 +415,6 @@ void Renderer::drawObject(unsigned int obj_id)
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glFrontFace(GL_CW);
-
-    glDrawElements(GL_TRIANGLES, data.num_indices, GL_UNSIGNED_INT, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void Renderer::draw()
-{
     /*
        First pass - render all VAOs to texture
     */
@@ -424,6 +422,7 @@ void Renderer::draw()
         drawObject(p.first);
     }
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     /*
        Second pass - draw screen quad with rendered texture
     */

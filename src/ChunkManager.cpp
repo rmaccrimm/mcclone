@@ -2,7 +2,7 @@
 #include "WorldChunk.h"
 #include <plog/Log.h>
 
-const int WORLD_SIZE = 1;
+const int WORLD_SIZE = 5;
 
 ChunkManager::ChunkManager(Renderer* renderer): m_renderer{renderer}
 {
