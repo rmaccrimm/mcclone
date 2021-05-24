@@ -113,8 +113,12 @@ int main()
     LOG_INFO << "Created surface with format " << SDL_GetPixelFormatName(surface->format->format);
 
     Renderer renderer(window);
+    if (renderer.initialize()) {
+        return 1;
+    }
+    
     InputManager input_mgr(window);
-    ChunkManager chunk_mgr;
+    ChunkManager chunk_mgr(&renderer);
     EntityAdmin admin(&input_mgr, &renderer, &chunk_mgr);
     int camera_id
         = admin.createEntity<CameraComponent, TransformComponent, PlayerControlComponent>();
@@ -125,10 +129,6 @@ int main()
 
     CameraMovementSystem cam_system(&admin);
     ChunkRenderSystem render_system(&admin);
-
-    if (renderer.initialize()) {
-        return 1;
-    }
 
     render_system.tick();
 
@@ -151,7 +151,7 @@ int main()
         }
         cam_system.tick();
 
-        renderer.draw(surface);
+        renderer.draw();
 
         auto t_draw = steady_clock::now();
         dt = duration_cast<duration<double>>(t_draw - t);

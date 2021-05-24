@@ -67,6 +67,7 @@ private:
         GLuint shader_prog;
         // TODO - remove this
         GLuint depth_buffer;
+	int num_indices;
     };
 
     std::map<std::string, GLuint> m_shader_prog_map;
@@ -79,6 +80,7 @@ private:
     GLdata m_screen;
     GLuint m_frame_buffer;
     glm::mat4 m_view_matrix;
+    unsigned int m_id_counter;
 };
 
 #endif /* _RENDERER_H_ */

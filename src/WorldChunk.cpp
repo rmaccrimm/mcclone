@@ -8,7 +8,8 @@
 #include "yocto_math.h"
 #include "yocto_noise.h"
 
-WorldChunk::WorldChunk(int _x, int _z) : m_blocks()
+WorldChunk::WorldChunk(int _x, int _z, unsigned int render_obj_id) :
+    m_blocks(), m_render_obj_id { render_obj_id }
 {
     m_position.x = _x;
     m_position.z = _z;

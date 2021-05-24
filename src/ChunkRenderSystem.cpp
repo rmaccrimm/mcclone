@@ -92,6 +92,7 @@ void ChunkRenderSystem::tick()
     std::array<Vertex, 4> face;
 
     for (auto const& chunk : chunk_mgr->m_chunks) {
+	RenderObject render_obj;
         for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
             for (int x = 0; x < WorldChunk::SPAN_X; x++) {
                 for (int z = 0; z < WorldChunk::SPAN_Z; z++) {
@@ -104,19 +105,26 @@ void ChunkRenderSystem::tick()
 
                         for (int q = 0; q < 6; q++) {
                             if (!chunk_mgr->checkNeighbour(world_position, FACE_NORMALS[q])) {
+				auto l = render_obj.vertices.size();
                                 indices = { 0, 3, 1, 0, 2, 3 };
                                 for (int j = 0; j < 4; j++) {
-                                    face[j].position
+				    Vertex v;
+                                    v.position
                                         = glm::vec3(translate * glm::vec4(CUBE_FACES[q][j], 1));
-				    face[j].texcoords = TEX_COORDS[j];
-                                    face[j].normal = FACE_NORMALS[q];
+				    v.texcoords = TEX_COORDS[j];
+                                    v.normal = FACE_NORMALS[q];
+				    render_obj.vertices.push_back(v);
                                 }
-                                renderer->copyVertexData(face, indices);
+				for (auto i: indices) {
+				    render_obj.indices.push_back(l + i);
+				}
+                                
                             }
                         }
                     }
                 }
             }
         }
+	renderer->updateRenderObject(chunk->m_render_obj_id, render_obj);
     }
 }

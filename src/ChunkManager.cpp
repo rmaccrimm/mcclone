@@ -1,14 +1,16 @@
 #include "ChunkManager.h"
 #include "WorldChunk.h"
+#include <plog/Log.h>
 
-const int WORLD_SIZE = 5;
+const int WORLD_SIZE = 1;
 
-ChunkManager::ChunkManager()
+ChunkManager::ChunkManager(Renderer* renderer): m_renderer{renderer}
 {
     for (int i = 0; i < WORLD_SIZE * WORLD_SIZE; i++) {
         int x = i / WORLD_SIZE;
         int z = i % WORLD_SIZE;
-        WorldChunk* chunk = new WorldChunk(x * 32, z * 32);
+	LOG_INFO << "Initializing Chunk (" << x << ", " << z << ")";
+        WorldChunk* chunk = new WorldChunk(x * 32, z * 32, m_renderer->newRenderObject());
         chunk->m_position.x = 32 * x;
         chunk->m_position.z = 32 * z;
         m_chunks.push_back(chunk);

@@ -52,7 +52,7 @@ void GLAPIENTRY MessageCallback(
     const GLchar* message,
     __attribute__((unused)) const void* userParam)
 {
-    if (std::string(message) != "") {
+    if (std::string(message) != "" && type == GL_DEBUG_TYPE_ERROR) {
         LOG_INFO << "* GL Message * " << message;
     }
 }
@@ -62,6 +62,7 @@ Renderer::Renderer(SDL_Window* window)
     m_window = window;
     m_view_matrix = glm::lookAt(
         glm::vec3(-20.0f, 20.0f, -4.0f), glm::vec3(16.0f, 5.0f, 16.0f), glm::vec3(0.0f, 1.0f, 0.0));
+    m_id_counter = 0;
 }
 
 Renderer::~Renderer()
@@ -193,7 +194,7 @@ int Renderer::initShader(std::string shader_name)
 
     // Link vertex and fragment shaders
     m_shader_prog_map[shader_name] = glCreateProgram();
-    auto shader_prog = m_shader_prog_map[shader_name];
+    auto shader_prog = m_shader_prog_map.at(shader_name);
 
     glAttachShader(shader_prog, vert_shader);
     glAttachShader(shader_prog, frag_shader);
@@ -228,7 +229,7 @@ int Renderer::initGeometry()
     glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
 
     // Write quad vertex data to buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), screen_quad, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), screen_quad, GL_STREAM_DRAW);
 
     // vertex positions
     glEnableVertexAttribArray(0);
@@ -321,13 +322,15 @@ int Renderer::loadGrassTexture()
 unsigned int Renderer::newRenderObject()
 {
     GLdata obj;
-    unsigned int id = __COUNTER__;
+    unsigned int id = m_id_counter++;
 
     glGenVertexArrays(1, &obj.vao);
     glGenBuffers(1, &obj.vbo);
     glGenBuffers(1, &obj.ebo);
 
     glBindVertexArray(obj.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
+    
     int stride = 8 * sizeof(GLfloat);
     // Bind vertex position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
@@ -347,7 +350,7 @@ unsigned int Renderer::newRenderObject()
 
 void Renderer::updateRenderObject(unsigned int obj_id, RenderObject& new_obj)
 {
-    auto& data = m_render_data_map[obj_id];
+    auto& data = m_render_data_map.at(obj_id);
 
     glBindVertexArray(data.vao);
     glBindBuffer(GL_ARRAY_BUFFER, data.vbo);
@@ -356,7 +359,7 @@ void Renderer::updateRenderObject(unsigned int obj_id, RenderObject& new_obj)
         GL_ARRAY_BUFFER,
         new_obj.vertices.size() * sizeof(Vertex),
         new_obj.vertices.data(),
-        GL_STATIC_DRAW);
+        GL_STREAM_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.ebo);
     glBufferData(
@@ -365,14 +368,21 @@ void Renderer::updateRenderObject(unsigned int obj_id, RenderObject& new_obj)
         new_obj.indices.data(),
         GL_STREAM_DRAW);
 
-    data.shader_prog = m_shader_prog_map[new_obj.material.shader_name];
+    data.num_indices = new_obj.indices.size();
+
+    // data.shader_prog = m_shader_prog_map.at(new_obj.material.shader_name);
+    data.shader_prog = m_shader_prog_map.at("single_tex");
+    data.tex = m_textures[0];
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
 void Renderer::setViewMatrix(glm::mat4 view_matrix) { m_view_matrix = view_matrix; }
 
 void Renderer::drawObject(unsigned int obj_id)
 {
-    GLdata& data = m_render_data_map[obj_id];
+    GLdata& data = m_render_data_map.at(obj_id);
 
     glBindVertexArray(data.vao);
     glBindBuffer(GL_ARRAY_BUFFER, data.vbo);
@@ -401,7 +411,7 @@ void Renderer::drawObject(unsigned int obj_id)
     glEnable(GL_DEPTH_TEST);
     glFrontFace(GL_CW);
 
-    glDrawElements(GL_TRIANGLES, 0, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, data.num_indices, GL_UNSIGNED_INT, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -426,43 +436,13 @@ void Renderer::draw()
     glDisable(GL_DEPTH_TEST);
 
     glBindVertexArray(m_screen.vao);
-    auto shader = m_shader_prog_map["screen"];
+    auto shader = m_shader_prog_map.at("screen");
     glUseProgram(shader);
 
     glBindTexture(GL_TEXTURE_2D, m_screen.tex);
     GLint texture_loc = glGetUniformLocation(shader, "screen_texture");
     glUniform1i(texture_loc, 0);
 
-<<<<<<< HEAD
-=======
-    // glActiveTexture(GL_TEXTURE0);
-    // glBindTexture(GL_TEXTURE_2D, m_screen.tex);
-
-    // LOG_DEBUG << "w: " << (float)surface->w;
-    // LOG_DEBUG << "h: " << (float)surface->h;
-
-    // Write quad vertex data to buffer
-    // for (int i = 0; i < 6; i++) {
-    // screen_quad[i][3] = screen_quad[i][3] == 0 ? 0 : 1920.0f / (float)surface->w;
-    // screen_quad[i][4] = screen_quad[i][4] == 0 ? 0 : 1080.0f / (float)surface->h;
-    // }
-    // glBindBuffer(GL_ARRAY_BUFFER, m_screen.vbo);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad), screen_quad, GL_STATIC_DRAW);
-
-    // SDL_LockSurface(surface);
-    // glTexImage2D(
-    //     GL_TEXTURE_2D,
-    //     0,
-    //     GL_RGBA,
-    //     surface->w,
-    //     surface->h,
-    //     0,
-    //     GL_RGBA,
-    //     GL_UNSIGNED_INT_8_8_8_8_REV,
-    //     surface->pixels);
-
-    // SDL_UnlockSurface(surface);
->>>>>>> temp
     glDrawArrays(GL_TRIANGLES, 0, 6);
     SDL_GL_SwapWindow(m_window);
 }

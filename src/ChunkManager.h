@@ -6,6 +6,7 @@
 #include <map>
 
 #include "RenderObject.h"
+#include "Renderer.h"
 
 
 class WorldChunk;
@@ -13,13 +14,15 @@ class WorldChunk;
 class ChunkManager
 {
 public:
-    ChunkManager();
+    ChunkManager(Renderer* renderer);
     ~ChunkManager();
     std::vector<WorldChunk*> m_chunks;
     // TODO - change this to a map from coords to renderobj id
     std::vector<unsigned int> m_render_objs;
 
     bool checkNeighbour(glm::vec3 position, glm::vec3 direction);
+private:
+    Renderer* m_renderer;
 };
 
 
