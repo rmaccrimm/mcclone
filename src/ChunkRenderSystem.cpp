@@ -1,86 +1,135 @@
+
 #include <array>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <plog/Log.h>
 
 #include "ChunkManager.h"
-#include "EntityAdmin.h"
 #include "ChunkRenderSystem.h"
-#include "Renderer.h"
+#include "EntityAdmin.h"
 #include "RenderObject.h"
+#include "Renderer.h"
 #include "Vertex.h"
 #include "WorldChunk.h"
 #include "components/Component.h"
 
-enum CUBE_FACE { LEFT = 0, RIGHT = 1, BOTTOM = 2, TOP = 3, FRONT = 4, BACK = 5 };
-
-// clang-format off
-const glm::vec3 FACE_NORMALS[6]  = {
-    // LEFT
-    glm::vec3(-1, 0, 0),
-    // RIGHT
-    glm::vec3(1, 0, 0),
-    // BOTTOM
-    glm::vec3(0, -1, 0),
-    // TOP
-    glm::vec3(0, 1, 0),
-    // FRONT
-    glm::vec3(0, 0, -1),
-    // BACK
-    glm::vec3(0, 0, 1)
+const std::vector<Vertex> CUBE = {
+    { .position = { 0.000000, 1.000000, 0.000000 },
+      .normal = { 0.000000, 1.000000, 0.000000 },
+      .texcoords = { 0.333333, 0.833333 } },
+    { .position = { 1.000000, 1.000000, 1.000000 },
+      .normal = { 0.000000, 1.000000, 0.000000 },
+      .texcoords = { 0.166667, 1.000000 } },
+    { .position = { 1.000000, 1.000000, 0.000000 },
+      .normal = { 0.000000, 1.000000, 0.000000 },
+      .texcoords = { 0.166667, 0.833333 } },
+    { .position = { 1.000000, 1.000000, 1.000000 },
+      .normal = { 0.000000, 0.000000, 1.000000 },
+      .texcoords = { 0.500000, 1.000000 } },
+    { .position = { 0.000000, 0.000000, 1.000000 },
+      .normal = { 0.000000, 0.000000, 1.000000 },
+      .texcoords = { 0.333333, 0.833333 } },
+    { .position = { 1.000000, 0.000000, 1.000000 },
+      .normal = { 0.000000, 0.000000, 1.000000 },
+      .texcoords = { 0.500000, 0.833333 } },
+    { .position = { 0.000000, 1.000000, 1.000000 },
+      .normal = { -1.000000, 0.000000, 0.000000 },
+      .texcoords = { 1.000000, 1.000000 } },
+    { .position = { 0.000000, 0.000000, 0.000000 },
+      .normal = { -1.000000, 0.000000, 0.000000 },
+      .texcoords = { 0.833333, 0.833333 } },
+    { .position = { 0.000000, 0.000000, 1.000000 },
+      .normal = { -1.000000, 0.000000, 0.000000 },
+      .texcoords = { 1.000000, 0.833333 } },
+    { .position = { 1.000000, 0.000000, 0.000000 },
+      .normal = { 0.000000, -1.000000, 0.000000 },
+      .texcoords = { 0.166667, 1.000000 } },
+    { .position = { 0.000000, 0.000000, 1.000000 },
+      .normal = { 0.000000, -1.000000, 0.000000 },
+      .texcoords = { 0.000000, 0.833333 } },
+    { .position = { 0.000000, 0.000000, 0.000000 },
+      .normal = { 0.000000, -1.000000, 0.000000 },
+      .texcoords = { 0.166667, 0.833333 } },
+    { .position = { 1.000000, 1.000000, 0.000000 },
+      .normal = { 1.000000, 0.000000, 0.000000 },
+      .texcoords = { 0.666667, 1.000000 } },
+    { .position = { 1.000000, 0.000000, 1.000000 },
+      .normal = { 1.000000, 0.000000, 0.000000 },
+      .texcoords = { 0.500000, 0.833333 } },
+    { .position = { 1.000000, 0.000000, 0.000000 },
+      .normal = { 1.000000, 0.000000, 0.000000 },
+      .texcoords = { 0.666667, 0.833333 } },
+    { .position = { 0.000000, 1.000000, 0.000000 },
+      .normal = { 0.000000, 0.000000, -1.000000 },
+      .texcoords = { 0.833333, 1.000000 } },
+    { .position = { 1.000000, 0.000000, 0.000000 },
+      .normal = { 0.000000, 0.000000, -1.000000 },
+      .texcoords = { 0.666667, 0.833333 } },
+    { .position = { 0.000000, 0.000000, 0.000000 },
+      .normal = { 0.000000, 0.000000, -1.000000 },
+      .texcoords = { 0.833333, 0.833333 } },
+    { .position = { 0.000000, 1.000000, 1.000000 },
+      .normal = { 0.000000, 1.000000, 0.000000 },
+      .texcoords = { 0.333333, 1.000000 } },
+    { .position = { 0.000000, 1.000000, 1.000000 },
+      .normal = { 0.000000, 0.000000, 1.000000 },
+      .texcoords = { 0.333333, 1.000000 } },
+    { .position = { 1.000000, 1.000000, 1.000000 },
+      .normal = { 1.000000, 0.000000, 0.000000 },
+      .texcoords = { 0.500000, 1.000000 } },
+    { .position = { 0.000000, 1.000000, 0.000000 },
+      .normal = { -1.000000, 0.000000, 0.000000 },
+      .texcoords = { 0.833333, 1.000000 } },
+    { .position = { 1.000000, 1.000000, 0.000000 },
+      .normal = { 0.000000, 0.000000, -1.000000 },
+      .texcoords = { 0.666667, 1.000000 } },
+    { .position = { 1.000000, 0.000000, 1.000000 },
+      .normal = { 0.000000, -1.000000, 0.000000 },
+      .texcoords = { 0.000000, 1.000000 } },
 };
 
-// TODO store/use the elements in a constant array as well
-const glm::vec3 CUBE_FACES[6][4] = {
-    {   // LEFT
-	glm::vec3(0, 0, 0),                             
-	glm::vec3(0, 0, 1),                             
-	glm::vec3(0, 1, 0),                             
-	glm::vec3(0, 1, 1),                             
-    },
-    {   // RIGHT
-	glm::vec3(1, 0, 1),
-	glm::vec3(1, 0, 0),
-	glm::vec3(1, 1, 1),
-	glm::vec3(1, 1, 0),
-    },
-    {   // BOTTOM
-	glm::vec3(0, 0, 0),
-	glm::vec3(1, 0, 0),
-	glm::vec3(0, 0, 1),
-	glm::vec3(1, 0, 1),
-    },
-    {   // TOP
-	glm::vec3(1, 1, 0),
-	glm::vec3(0, 1, 0),
-	glm::vec3(1, 1, 1),
-	glm::vec3(0, 1, 1),
-    },
-    {   // FRONT
-	glm::vec3(1, 0, 0),
-	glm::vec3(0, 0, 0),
-	glm::vec3(1, 1, 0),
-	glm::vec3(0, 1, 0),
-    },
-    {   // BACK
-	glm::vec3(0, 0, 1),
-	glm::vec3(1, 0, 1),
-	glm::vec3(0, 1, 1),
-	glm::vec3(1, 1, 1) 
-    }
+const std::vector<unsigned int> indices = {
+    0, 1,  2, 3, 4,  5, 6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+    0, 18, 1, 3, 19, 4, 12, 20, 13, 6, 21, 7,  15, 22, 16, 9,  23, 10,
 };
-
-const glm::vec2 TEX_COORDS[4] = {
-    glm::vec2(0, 0),
-    glm::vec2(0, 1),
-    glm::vec2(1, 0),
-    glm::vec2(1, 1)
-};
-// clang-format on
 
 ChunkRenderSystem::ChunkRenderSystem(EntityAdmin* admin) : m_admin { admin } { }
 
-const glm::vec3 colors[2] = { glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.3, 0.3, 0.3) };
+void ChunkRenderSystem::loadCubeFaces(glm::vec3 cube_position, RenderObject& target)
+{
+    auto chunk_mgr = m_admin->getChunkManager();
+    int starting_index = target.vertices.size();
+    glm::mat4 translate = glm::translate(glm::mat4(1), cube_position);
+
+    bool vert_used[24] = { 0 };
+    std::vector<unsigned int> indices_used;
+    for (int i = 0; i < 36; i += 3) {
+        auto& v = CUBE[indices[i]];
+        if (chunk_mgr->checkNeighbour(cube_position, v.normal)) {
+            continue;
+        }
+        for (int j = 0; j < 3; j++) {
+            int index = indices[i + j];
+            indices_used.push_back(index);
+            vert_used[index] = true;
+        }
+    }
+
+    int index_map[24] = { -1 };
+    int next = 0;
+    for (int i = 0; i < 24; i++) {
+        if (vert_used[i]) {
+            index_map[i] = next++;
+            auto v = CUBE[i];
+            target.vertices.push_back({ .position = glm::vec3(translate * glm::vec4(v.position, 1)),
+                                        .normal = v.normal,
+                                        .texcoords = v.texcoords });
+        }
+    }
+    for (auto i : indices_used) {
+        target.indices.push_back(starting_index + index_map[i]);
+    }
+}
 
 void ChunkRenderSystem::tick()
 {
@@ -88,43 +137,22 @@ void ChunkRenderSystem::tick()
     auto chunk_mgr = m_admin->getChunkManager();
     auto renderer = m_admin->getRenderer();
 
-    std::array<int, 6> indices;
-    std::array<Vertex, 4> face;
-
     for (auto const& chunk : chunk_mgr->m_chunks) {
-	RenderObject render_obj;
+        LOG_INFO << "Loading Chunk (" << chunk->m_position.x << ", " << chunk->m_position.z
+                 << ")";
+        RenderObject render_obj;
         for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
             for (int x = 0; x < WorldChunk::SPAN_X; x++) {
                 for (int z = 0; z < WorldChunk::SPAN_Z; z++) {
                     if (chunk->m_blocks[x][y][z]) {
                         glm::vec3 chunk_position = glm::vec3(x, y, z);
-
                         glm::vec3 world_position = chunk_position
                             + glm::vec3(chunk->m_position.x, 0, chunk->m_position.z);
-                        glm::mat4 translate = glm::translate(glm::mat4(1), world_position);
-
-                        for (int q = 0; q < 6; q++) {
-                            if (!chunk_mgr->checkNeighbour(world_position, FACE_NORMALS[q])) {
-				auto l = render_obj.vertices.size();
-                                indices = { 0, 3, 1, 0, 2, 3 };
-                                for (int j = 0; j < 4; j++) {
-				    Vertex v;
-                                    v.position
-                                        = glm::vec3(translate * glm::vec4(CUBE_FACES[q][j], 1));
-				    v.texcoords = TEX_COORDS[j];
-                                    v.normal = FACE_NORMALS[q];
-				    render_obj.vertices.push_back(v);
-                                }
-				for (auto i: indices) {
-				    render_obj.indices.push_back(l + i);
-				}
-                                
-                            }
-                        }
+                        loadCubeFaces(world_position, render_obj);
                     }
                 }
             }
         }
-	renderer->updateRenderObject(chunk->m_render_obj_id, render_obj);
+        renderer->updateRenderObject(chunk->m_render_obj_id, render_obj);
     }
 }

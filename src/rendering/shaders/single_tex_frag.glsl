@@ -15,7 +15,7 @@ void main()
     float diff = max(dot(normal, lightDir), 0.0);
     float intensity = min(max(diff, ambient), 1.0);
 
-    vec4 tex = texture(diffuse_texture, texcoords);
+    vec4 tex = texture(diffuse_texture, vec2(texcoords.x, 1 - texcoords.y));
     
     fragColor = vec4(intensity * tex.rgb, 1.0);                               
 }                                                                          

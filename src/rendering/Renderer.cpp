@@ -290,7 +290,7 @@ int Renderer::initTextures()
 int Renderer::loadGrassTexture()
 {
 
-    const char* img_path = "/home/rmaccrimmon/projects/mcclone/textures/GrassSide.png";
+    const char* img_path = "/home/rmaccrimmon/projects/mcclone/textures/Grass.png";
 
     GLuint new_tex;
     glGenTextures(1, &new_tex);
@@ -308,10 +308,10 @@ int Renderer::loadGrassTexture()
     }
     LOG_INFO << n << " components, " << width << " width, " << height << " height";
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
@@ -414,7 +414,7 @@ void Renderer::draw()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-    glFrontFace(GL_CW);
+    glFrontFace(GL_CCW);
     /*
        First pass - render all VAOs to texture
     */
