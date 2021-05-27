@@ -15,75 +15,99 @@
 #include "components/Component.h"
 
 const std::vector<Vertex> CUBE = {
+    // 0
     { .position = { 0.000000, 1.000000, 0.000000 },
       .normal = { 0.000000, 1.000000, 0.000000 },
       .texcoords = { 0.333333, 0.833333 } },
+    // 1
     { .position = { 1.000000, 1.000000, 1.000000 },
       .normal = { 0.000000, 1.000000, 0.000000 },
       .texcoords = { 0.166667, 1.000000 } },
+    // 2
     { .position = { 1.000000, 1.000000, 0.000000 },
       .normal = { 0.000000, 1.000000, 0.000000 },
       .texcoords = { 0.166667, 0.833333 } },
+    // 3
     { .position = { 1.000000, 1.000000, 1.000000 },
       .normal = { 0.000000, 0.000000, 1.000000 },
       .texcoords = { 0.500000, 1.000000 } },
+    // 4
     { .position = { 0.000000, 0.000000, 1.000000 },
       .normal = { 0.000000, 0.000000, 1.000000 },
       .texcoords = { 0.333333, 0.833333 } },
+    // 5
     { .position = { 1.000000, 0.000000, 1.000000 },
       .normal = { 0.000000, 0.000000, 1.000000 },
       .texcoords = { 0.500000, 0.833333 } },
+    // 6
     { .position = { 0.000000, 1.000000, 1.000000 },
       .normal = { -1.000000, 0.000000, 0.000000 },
       .texcoords = { 1.000000, 1.000000 } },
+    // 7
     { .position = { 0.000000, 0.000000, 0.000000 },
       .normal = { -1.000000, 0.000000, 0.000000 },
       .texcoords = { 0.833333, 0.833333 } },
+    // 8
     { .position = { 0.000000, 0.000000, 1.000000 },
       .normal = { -1.000000, 0.000000, 0.000000 },
       .texcoords = { 1.000000, 0.833333 } },
+    // 9
     { .position = { 1.000000, 0.000000, 0.000000 },
       .normal = { 0.000000, -1.000000, 0.000000 },
       .texcoords = { 0.166667, 1.000000 } },
+    // 10
     { .position = { 0.000000, 0.000000, 1.000000 },
       .normal = { 0.000000, -1.000000, 0.000000 },
       .texcoords = { 0.000000, 0.833333 } },
+    // 11
     { .position = { 0.000000, 0.000000, 0.000000 },
       .normal = { 0.000000, -1.000000, 0.000000 },
       .texcoords = { 0.166667, 0.833333 } },
+    // 12
     { .position = { 1.000000, 1.000000, 0.000000 },
       .normal = { 1.000000, 0.000000, 0.000000 },
       .texcoords = { 0.666667, 1.000000 } },
+    // 13
     { .position = { 1.000000, 0.000000, 1.000000 },
       .normal = { 1.000000, 0.000000, 0.000000 },
       .texcoords = { 0.500000, 0.833333 } },
+    // 14
     { .position = { 1.000000, 0.000000, 0.000000 },
       .normal = { 1.000000, 0.000000, 0.000000 },
       .texcoords = { 0.666667, 0.833333 } },
+    // 15
     { .position = { 0.000000, 1.000000, 0.000000 },
       .normal = { 0.000000, 0.000000, -1.000000 },
       .texcoords = { 0.833333, 1.000000 } },
+    // 16
     { .position = { 1.000000, 0.000000, 0.000000 },
       .normal = { 0.000000, 0.000000, -1.000000 },
       .texcoords = { 0.666667, 0.833333 } },
+    // 17
     { .position = { 0.000000, 0.000000, 0.000000 },
       .normal = { 0.000000, 0.000000, -1.000000 },
       .texcoords = { 0.833333, 0.833333 } },
+    // 18
     { .position = { 0.000000, 1.000000, 1.000000 },
       .normal = { 0.000000, 1.000000, 0.000000 },
       .texcoords = { 0.333333, 1.000000 } },
+    // 19
     { .position = { 0.000000, 1.000000, 1.000000 },
       .normal = { 0.000000, 0.000000, 1.000000 },
       .texcoords = { 0.333333, 1.000000 } },
+    // 20
     { .position = { 1.000000, 1.000000, 1.000000 },
       .normal = { 1.000000, 0.000000, 0.000000 },
       .texcoords = { 0.500000, 1.000000 } },
+    // 21
     { .position = { 0.000000, 1.000000, 0.000000 },
       .normal = { -1.000000, 0.000000, 0.000000 },
       .texcoords = { 0.833333, 1.000000 } },
+    // 22
     { .position = { 1.000000, 1.000000, 0.000000 },
       .normal = { 0.000000, 0.000000, -1.000000 },
       .texcoords = { 0.666667, 1.000000 } },
+    // 23
     { .position = { 1.000000, 0.000000, 1.000000 },
       .normal = { 0.000000, -1.000000, 0.000000 },
       .texcoords = { 0.000000, 1.000000 } },
@@ -138,21 +162,22 @@ void ChunkRenderSystem::tick()
     auto chunk_mgr = m_admin->getChunkManager();
     auto renderer = m_admin->getRenderer();
 
-    for (auto const& chunk : chunk_mgr->m_chunks) {
-        LOG_INFO << "Loading Chunk (" << chunk->m_position.x << ", " << chunk->m_position.z << ")";
+    // TODO - some kind of chunk iter
+    for (auto &[pos, chunk]: chunk_mgr->m_chunks) {
+        LOG_INFO << "Loading Chunk (" << chunk.m_origin.x << ", " << chunk.m_origin.z << ")";
         RenderObject render_obj;
         for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
             for (int x = 0; x < WorldChunk::SPAN_X; x++) {
                 for (int z = 0; z < WorldChunk::SPAN_Z; z++) {
-                    if (chunk->m_blocks[x][y][z]) {
+                    if (chunk.m_blocks[x][y][z]) {
                         glm::vec3 chunk_position = glm::vec3(x, y, z);
                         glm::vec3 world_position = chunk_position
-                            + glm::vec3(chunk->m_position.x, 0, chunk->m_position.z);
+                            + glm::vec3(chunk.m_origin.x, 0, chunk.m_origin.z);
                         loadCubeFaces(world_position, render_obj);
                     }
                 }
             }
         }
-        renderer->updateRenderObject(chunk->m_render_obj_id, render_obj);
+        renderer->updateRenderObject(chunk.m_render_obj_id, render_obj);
     }
 }

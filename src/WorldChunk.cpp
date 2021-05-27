@@ -8,16 +8,15 @@
 #include "yocto_math.h"
 #include "yocto_noise.h"
 
-WorldChunk::WorldChunk(int _x, int _z, unsigned int render_obj_id) :
+WorldChunk::WorldChunk(int x, int z, unsigned int render_obj_id) :
     m_blocks(), m_render_obj_id { render_obj_id }
 {
-    m_position.x = _x;
-    m_position.z = _z;
+    m_origin = { static_cast<float>(x), 0.0f, static_cast<float>(z) };
 
     for (int x = 0; x < 32; x++) {
         for (int z = 0; z < 32; z++) {
-            auto coord = yocto::vec2f { (float)(m_position.x + x) * 1.0f / 64.0f,
-                                        (float)(m_position.z + z) * 1.0f / 64.0f };
+            auto coord = yocto::vec2f { (float)(m_origin.x + x) * 1.0f / 64.0f,
+                                        (float)(m_origin.z + z) * 1.0f / 64.0f };
             int height = yocto::perlin_noise(coord) * 30 + 10;
             for (int y = 0; y < height; y++) {
                 m_blocks[x][y][z] = y == (height - 1) ? 1 : 2;

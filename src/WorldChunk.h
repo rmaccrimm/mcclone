@@ -1,8 +1,10 @@
 #ifndef _WORLDCHUNK_H_
 #define _WORLDCHUNK_H_
 
+#include <components/TransformComponent.h>
+
 #include <cstdint>
-#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 
 typedef uint8_t block_id;
 
@@ -19,7 +21,7 @@ public:
     static const int SPAN_Y = 256;
     static const int SPAN_Z = 32;
 
-    ChunkPosition m_position;
+    glm::vec3 m_origin;
     unsigned int m_render_obj_id;
     // Blocks run from (x, y) to (x + 31, y + 31), z = 0 to 255
     block_id m_blocks[SPAN_X][SPAN_Y][SPAN_Z];
