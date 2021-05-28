@@ -12,7 +12,9 @@ include_directories(
 add_executable(
 	tests
 	tests.cpp
-	test_entities.cpp)
+	test_entities.cpp
+	test_renderer.cpp
+)
 target_link_libraries(
 	tests
 	PRIVATE

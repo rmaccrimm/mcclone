@@ -345,6 +345,8 @@ unsigned int Renderer::newRenderObject()
     glEnableVertexAttribArray(2);
 
     m_render_data_map[id] = obj;
+
+    LOG_INFO << "Created new render object with id " << id;
     return id;
 }
 

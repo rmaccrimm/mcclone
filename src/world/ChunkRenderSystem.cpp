@@ -158,25 +158,28 @@ void ChunkRenderSystem::loadCubeFaces(glm::vec3 cube_position, RenderObject& tar
 
 void ChunkRenderSystem::tick()
 {
-    LOG_INFO << "Transfering data to GPU";
     auto chunk_mgr = m_admin->getChunkManager();
     auto renderer = m_admin->getRenderer();
 
     // TODO - some kind of chunk iter
     for (auto& [key, chunk] : chunk_mgr->m_chunks) {
-        LOG_INFO << "Loading Chunk (" << chunk->origin.x << ", " << chunk->origin.z << ")";
+	if (!chunk->updated) {
+	    continue;
+	}
+        LOG_INFO << "Uploading chunk (" << chunk->origin.x << ", " << chunk->origin.z << ") to GPU";
         RenderObject render_obj;
         for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
             for (int x = 0; x < WorldChunk::SPAN_X; x++) {
                 for (int z = 0; z < WorldChunk::SPAN_Z; z++) {
                     if (chunk->blocks[x][y][z]) {
-                        glm::vec3 chunk_position = glm::vec3(x, y, z);
-                        glm::vec3 world_position = chunk_position + chunk->origin;
+                        glm::vec3 chunk_position(x, y, z);
+                        glm::vec3 world_position = chunk_position + glm::vec3(chunk->origin);
                         loadCubeFaces(world_position, render_obj);
                     }
                 }
             }
         }
         renderer->updateRenderObject(chunk->render_obj_id, render_obj);
+	chunk->updated = false;
     }
 }

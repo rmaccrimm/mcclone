@@ -16,6 +16,7 @@
 #include <variant>
 
 #include "CameraMovementSystem.h"
+#include "ChunkLoadingSystem.h"
 #include "ChunkManager.h"
 #include "EntityAdmin.h"
 #include "InputManager.h"
@@ -119,6 +120,7 @@ int main()
     
     InputManager input_mgr(window);
     ChunkManager chunk_mgr(&renderer);
+
     EntityAdmin admin(&input_mgr, &renderer, &chunk_mgr);
     int camera_id
         = admin.createEntity<CameraComponent, TransformComponent, PlayerControlComponent>();
@@ -127,8 +129,11 @@ int main()
     transform->m_position = glm::vec3(16, 40.0, -10.0);
     transform->m_forward = glm::vec3(16.0, 10.0, 16.0) - transform->m_position;
 
+    chunk_mgr.reloadChunks(transform->m_position);
+
     CameraMovementSystem cam_system(&admin);
     ChunkRenderSystem render_system(&admin);
+    ChunkLoadingSystem load_system(&admin);
 
     using namespace std::chrono;
     
@@ -156,7 +161,8 @@ int main()
             input_mgr.update(event);
         }
         cam_system.tick();
-
+	load_system.tick();
+	render_system.tick();
         renderer.draw();
 
         auto t_draw = steady_clock::now();
