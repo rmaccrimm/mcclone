@@ -8,7 +8,6 @@ void ChunkLoadingSystem::tick()
 {
     auto chunk_mgr = m_admin->getChunkManager();
     for (int id : m_admin->componentView<TransformComponent, PlayerControlComponent>()) {
-        auto& chunk = chunk_mgr->getCenterChunk();
 	
     }
 }

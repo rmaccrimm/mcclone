@@ -1,8 +1,8 @@
 
 #include <array>
-#include <map>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
+#include <map>
 #include <plog/Log.h>
 
 #include "ChunkManager.h"
@@ -163,21 +163,20 @@ void ChunkRenderSystem::tick()
     auto renderer = m_admin->getRenderer();
 
     // TODO - some kind of chunk iter
-    for (auto &[pos, chunk]: chunk_mgr->m_chunks) {
-        LOG_INFO << "Loading Chunk (" << chunk.m_origin.x << ", " << chunk.m_origin.z << ")";
+    for (auto& [key, chunk] : chunk_mgr->m_chunks) {
+        LOG_INFO << "Loading Chunk (" << chunk->origin.x << ", " << chunk->origin.z << ")";
         RenderObject render_obj;
         for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
             for (int x = 0; x < WorldChunk::SPAN_X; x++) {
                 for (int z = 0; z < WorldChunk::SPAN_Z; z++) {
-                    if (chunk.m_blocks[x][y][z]) {
+                    if (chunk->blocks[x][y][z]) {
                         glm::vec3 chunk_position = glm::vec3(x, y, z);
-                        glm::vec3 world_position = chunk_position
-                            + glm::vec3(chunk.m_origin.x, 0, chunk.m_origin.z);
+                        glm::vec3 world_position = chunk_position + chunk->origin;
                         loadCubeFaces(world_position, render_obj);
                     }
                 }
             }
         }
-        renderer->updateRenderObject(chunk.m_render_obj_id, render_obj);
+        renderer->updateRenderObject(chunk->render_obj_id, render_obj);
     }
 }

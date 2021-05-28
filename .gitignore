@@ -4,6 +4,7 @@ debug/
 release/
 cmake/
 blender/
+compile_commands.json
 .*/
 !/.gitignore
 #*

@@ -4,6 +4,7 @@
 #include <glm/vec3.hpp>
 #include <unordered_map>
 #include <vector>
+#include <memory>
 
 #include "RenderObject.h"
 #include "Renderer.h"
@@ -14,11 +15,9 @@ public:
     ChunkManager(Renderer* renderer);
     ~ChunkManager();
 
-    std::unordered_map<int, WorldChunk> m_chunks;
+    std::unordered_map<int, std::unique_ptr<WorldChunk>> m_chunks;
 
     bool checkNeighbour(glm::vec3 position, glm::vec3 direction);
-
-    WorldChunk& getCentralChunk();
 
     void reloadChunks(glm::vec3 world_center);
 

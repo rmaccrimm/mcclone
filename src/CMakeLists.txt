@@ -16,6 +16,7 @@ include_directories(
 	renderer PRIVATE
 	${PROJECT_SOURCE_DIR}/src/
 	${PROJECT_SOURCE_DIR}/src/rendering
+	${PROJECT_SOURCE_DIR}/src/world	
 	${CMAKE_BINARY_DIR}/generated/
 	${PROJECT_SOURCE_DIR}/include
 	SYSTEM INTERFACE  # Suppresses warnings from these files
@@ -34,12 +35,13 @@ target_link_libraries(
 	
 add_library(
 	ecs
-	WorldChunk.cpp	
-	ChunkManager.cpp
 	EntityAdmin.cpp
 	InputManager.cpp
 	CameraMovementSystem.cpp
-	ChunkRenderSystem.cpp
+	world/WorldChunk.cpp	
+	world/ChunkManager.cpp	
+	world/ChunkRenderSystem.cpp
+	world/ChunkLoadingSystem.cpp
 )
 
 add_executable(
