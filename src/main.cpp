@@ -9,7 +9,7 @@
 #include <glm/vec3.hpp>
 #include <iostream>
 #include <plog/Appenders/ColorConsoleAppender.h>
-#include <plog/Formatters/FuncMessageFormatter.h>
+#include <plog/Formatters/TxtFormatter.h>
 #include <plog/Init.h>
 #include <plog/Log.h>
 #include <stdio.h>
@@ -37,7 +37,7 @@ void flip_surface(SDL_Surface* surface)
     int pitch = surface->pitch; // row size
     char* temp = new char[pitch]; // intermediate buffer
     char* pixels = (char*)surface->pixels;
-
+    
     for (int i = 0; i < surface->h / 2; ++i) {
         // get pointers to the two rows to swap
         char* row1 = pixels + i * pitch;
@@ -66,7 +66,7 @@ void flip_surface(SDL_Surface* surface)
 int main()
 {
     // Initialize logger
-    static plog::ColorConsoleAppender<plog::FuncMessageFormatter> consoleAppender;
+    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
     plog::init(plog::verbose, &consoleAppender);
 
     int should_run;

@@ -13,7 +13,7 @@ public:
     WorldChunk(glm::ivec3 origin, unsigned int render_obj_id);
     
     static const int SPAN_X = 32;
-    static const int SPAN_Y = 256;
+    static const int SPAN_Y = 128;
     static const int SPAN_Z = 32;
     
     // World-space coordinates for chunk. The chunk fills origin.x <= x < origin.x + SPAN_X and

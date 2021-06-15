@@ -2,7 +2,7 @@
 #include <array>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
-#include <map>
+#include <unordered_map>
 #include <plog/Log.h>
 
 #include "ChunkManager.h"
@@ -124,10 +124,10 @@ void ChunkRenderSystem::loadCubeFaces(glm::vec3 cube_position, RenderObject& tar
 {
     auto chunk_mgr = m_admin->getChunkManager();
     int starting_index = target.vertices.size();
-    glm::mat4 translate = glm::translate(glm::mat4(1), cube_position);
 
     bool vert_used[24] = { 0 };
-    std::vector<unsigned int> indices_used;
+    int indices_used[36] = { 0 };
+    int len_indices_used = 0;
     for (int i = 0; i < 36; i += 3) {
         auto& v = CUBE[INDICES[i]];
         if (chunk_mgr->checkNeighbour(cube_position, v.normal)) {
@@ -135,24 +135,24 @@ void ChunkRenderSystem::loadCubeFaces(glm::vec3 cube_position, RenderObject& tar
         }
         for (int j = 0; j < 3; j++) {
             int index = INDICES[i + j];
-            indices_used.push_back(index);
+            indices_used[len_indices_used++] = index;
             vert_used[index] = true;
         }
     }
 
-    std::map<int, int> index_map;
+    int index_map[24];
     int next = 0;
     for (int i = 0; i < 24; i++) {
         if (vert_used[i]) {
             index_map[i] = next++;
             auto v = CUBE[i];
-            target.vertices.push_back({ .position = glm::vec3(translate * glm::vec4(v.position, 1)),
+            target.vertices.push_back({ .position = v.position + cube_position,
                                         .normal = v.normal,
                                         .texcoords = v.texcoords });
         }
     }
-    for (auto i : indices_used) {
-        target.indices.push_back(starting_index + index_map.at(i));
+    for (int i = 0; i < len_indices_used; i++) {
+        target.indices.push_back(starting_index + index_map[indices_used[i]]);
     }
 }
 
@@ -162,7 +162,7 @@ void ChunkRenderSystem::tick()
     auto renderer = m_admin->getRenderer();
 
     // TODO - some kind of chunk iter
-    for (auto& [key, chunk] : chunk_mgr->m_chunks) {
+    for (auto& chunk : chunk_mgr->m_chunks) {
 	if (!chunk->updated) {
 	    continue;
 	}

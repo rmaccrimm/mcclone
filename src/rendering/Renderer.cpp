@@ -395,7 +395,7 @@ void Renderer::drawObject(unsigned int obj_id)
     GLint proj_loc = glGetUniformLocation(data.shader_prog, "Projection");
     GLint tex_loc = glGetUniformLocation(data.shader_prog, "diffuse_texture");
 
-    auto proj = glm::perspective(glm::radians(45.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
+    auto proj = glm::perspective(glm::radians(60.0f), 16.0f / 9.0f, 0.1f, 1000.0f);
 
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(m_view_matrix));
