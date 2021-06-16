@@ -60,18 +60,20 @@ bool ChunkManager::checkNeighbour(const glm::vec3& position, const glm::vec3& di
 
     auto internal_coord = internalCoord(block_coord);
     auto chunk_coord = chunkCoord(block_coord);
-
     auto opt_chunk_index = getChunkIndex(chunk_coord, m_chunks[m_central_index]->origin);
+    // don't want to render a wall at the edge of the loaded chunks, so treat space beyond
+    // horizontal limit as filled
     if (!opt_chunk_index.has_value()) {
+        return true;
+    }
+    // We do want to draw faces at the top/bottom of the world limit, so treat space beyond
+    // vertical limit as empty
+    if (internal_coord.y < 0 || internal_coord.y >= WorldChunk::SPAN_Y) {
         return false;
     }
 
     auto& chunk = m_chunks[opt_chunk_index.value()];
-
-    return (block_coord.x >= 0 && block_coord.x < WORLD_SIZE * WorldChunk::SPAN_X)
-        && (block_coord.z >= 0 && block_coord.z < WORLD_SIZE * WorldChunk::SPAN_Z)
-        && (block_coord.y >= 0 && block_coord.y < WorldChunk::SPAN_Y)
-        && chunk->blocks[internal_coord.x][internal_coord.y][internal_coord.z];
+    return chunk->blocks[internal_coord.x][internal_coord.y][internal_coord.z];
 }
 
 std::unique_ptr<WorldChunk>& ChunkManager::getCenterChunk() { return m_chunks[m_central_index]; }
@@ -79,10 +81,10 @@ std::unique_ptr<WorldChunk>& ChunkManager::getCenterChunk() { return m_chunks[m_
 void ChunkManager::reloadChunks(glm::vec3 world_center)
 {
     auto center_chunk_coords = chunkCoord(world_center);
-    LOG_INFO << "Player position is (" << world_center.x << ", " << world_center.y << ", "
-             << world_center.z << ")";
-    LOG_INFO << "Central chunk is (" << center_chunk_coords.x << ", " << center_chunk_coords.z
-             << ")";
+    LOG_VERBOSE << "Player position is (" << world_center.x << ", " << world_center.y << ", "
+                << world_center.z << ")";
+    LOG_VERBOSE << "Central chunk is (" << center_chunk_coords.x << ", " << center_chunk_coords.z
+                << ")";
 
     auto old_center = m_chunks[m_central_index]->origin;
     std::vector<int> chunks_to_unload;
@@ -101,7 +103,7 @@ void ChunkManager::reloadChunks(glm::vec3 world_center)
     std::stack<unsigned int> render_ids;
     for (auto ind : chunks_to_unload) {
         auto coord = m_chunks[ind]->origin;
-        LOG_DEBUG << "Unloading chunk (" << coord.x << ", " << coord.z << ")";
+        LOG_VERBOSE << "Unloading chunk (" << coord.x << ", " << coord.z << ")";
         render_ids.push(m_chunks[ind]->render_obj_id);
         m_chunks[ind].reset();
     }
@@ -124,7 +126,7 @@ void ChunkManager::reloadChunks(glm::vec3 world_center)
             if (old_index.has_value()) {
                 m_chunks[new_index].swap(tmp_grid[old_index.value()]);
             } else {
-                LOG_DEBUG << "Loading chunk (" << chunk_coord.x << ", " << chunk_coord.z << ")";
+                LOG_VERBOSE << "Loading chunk (" << chunk_coord.x << ", " << chunk_coord.z << ")";
                 unsigned int render_id;
                 if (render_ids.size() > 0) {
                     render_id = render_ids.top();

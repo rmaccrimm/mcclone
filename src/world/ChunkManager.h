@@ -11,7 +11,7 @@
 #include "Renderer.h"
 #include "WorldChunk.h"
 
-const int WORLD_SIZE = 3;
+const int WORLD_SIZE = 10;
 
 class ChunkManager {
 public:

@@ -32,7 +32,7 @@ inline glm::ivec3 chunkCoord(glm::vec3 world_coord)
         roundToLowerMultiple(world_coord.z, WorldChunk::SPAN_Z));
 }
 
-inline glm::ivec3 internalCoord(glm::vec3 &world_coord)
+inline glm::ivec3 internalCoord(glm::vec3 world_coord)
 {
     return glm::ivec3(
         getRemainder(world_coord.x, WorldChunk::SPAN_X),

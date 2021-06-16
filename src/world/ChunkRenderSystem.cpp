@@ -120,7 +120,7 @@ const std::vector<unsigned int> INDICES = {
 
 ChunkRenderSystem::ChunkRenderSystem(EntityAdmin* admin) : m_admin { admin } { }
 
-void ChunkRenderSystem::loadCubeFaces(glm::vec3 cube_position, RenderObject& target)
+void ChunkRenderSystem::loadCubeFaces(glm::vec3 world_coord, RenderObject& target)
 {
     auto chunk_mgr = m_admin->getChunkManager();
     int starting_index = target.vertices.size();
@@ -130,7 +130,7 @@ void ChunkRenderSystem::loadCubeFaces(glm::vec3 cube_position, RenderObject& tar
     int len_indices_used = 0;
     for (int i = 0; i < 36; i += 3) {
         auto& v = CUBE[INDICES[i]];
-        if (chunk_mgr->checkNeighbour(cube_position, v.normal)) {
+        if (chunk_mgr->checkNeighbour(world_coord, v.normal)) {
             continue;
         }
         for (int j = 0; j < 3; j++) {
@@ -146,7 +146,7 @@ void ChunkRenderSystem::loadCubeFaces(glm::vec3 cube_position, RenderObject& tar
         if (vert_used[i]) {
             index_map[i] = next++;
             auto v = CUBE[i];
-            target.vertices.push_back({ .position = v.position + cube_position,
+            target.vertices.push_back({ .position = v.position + world_coord,
                                         .normal = v.normal,
                                         .texcoords = v.texcoords });
         }
@@ -166,15 +166,15 @@ void ChunkRenderSystem::tick()
 	if (!chunk->updated) {
 	    continue;
 	}
-        LOG_INFO << "Uploading chunk (" << chunk->origin.x << ", " << chunk->origin.z << ") to GPU";
+        LOG_VERBOSE << "Uploading chunk (" << chunk->origin.x << ", " << chunk->origin.z << ") to GPU";
         RenderObject render_obj;
         for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
             for (int x = 0; x < WorldChunk::SPAN_X; x++) {
                 for (int z = 0; z < WorldChunk::SPAN_Z; z++) {
                     if (chunk->blocks[x][y][z]) {
-                        glm::vec3 chunk_position(x, y, z);
-                        glm::vec3 world_position = chunk_position + glm::vec3(chunk->origin);
-                        loadCubeFaces(world_position, render_obj);
+                        glm::vec3 internal_coord(x, y, z);
+                        glm::vec3 world_coord = internal_coord + glm::vec3(chunk->origin);
+                        loadCubeFaces(world_coord, render_obj);
                     }
                 }
             }

@@ -3,7 +3,7 @@ project(mcclone)
 
 SET(
 	GCC_DEBUG_COMPILE_FLAGS 
-	"-fsanitize=address -O0  -pg -ggdb -D_REENTRANT --std=c++20"
+	"-fsanitize=address -O0  -pg -ggdb -D_REENTRANT --std=c++20 -D_GLIBCXX_ASSERTIONS"
 )
 SET(
 	GCC_RELEASE_COMPILE_FLAGS 

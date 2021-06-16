@@ -30,38 +30,7 @@
 #include <thread>
 #include <unordered_map>
 
-void flip_surface(SDL_Surface* surface)
-{
-    SDL_LockSurface(surface);
 
-    int pitch = surface->pitch; // row size
-    char* temp = new char[pitch]; // intermediate buffer
-    char* pixels = (char*)surface->pixels;
-    
-    for (int i = 0; i < surface->h / 2; ++i) {
-        // get pointers to the two rows to swap
-        char* row1 = pixels + i * pitch;
-        char* row2 = pixels + (surface->h - i - 1) * pitch;
-
-        // swap rows
-        memcpy(temp, row1, pitch);
-        memcpy(row1, row2, pitch);
-        memcpy(row2, temp, pitch);
-    }
-    
-    for (int i = 0; i < surface->h * surface->w; i++) {
-	int p = pixels[i];
-	unsigned int b = (p >> 24) & 0xff;
-	unsigned int g = (p >> 16) & 0xff;
-	unsigned int r = (p >> 8) & 0xff;
-	unsigned int a = p & 0xff;
-	pixels[i] = r << 24 | g << 16 | b << 8 | a;
-    }
-
-    delete[] temp;
-
-    SDL_UnlockSurface(surface);
-}
 
 int main()
 {
@@ -85,33 +54,6 @@ int main()
         SDL_Quit();
         return 1;
     }
-
-    LOG_INFO << "Initializing TTF";
-    if (TTF_Init() == -1) {
-        LOG_ERROR << "TTF_Init: " << TTF_GetError();
-        SDL_Quit();
-        return 1;
-    }
-    TTF_Font* font = TTF_OpenFont("/usr/share/fonts/TTF/FiraCode-Regular.ttf", 16);
-    if (!font) {
-        LOG_ERROR << "TTF_Init: " << TTF_GetError();
-        SDL_Quit();
-        return 1;
-    }
-
-    LOG_INFO << "Rendering text";
-    SDL_Color white = { 255, 255, 255, 255 };
-
-    SDL_Surface* surface = TTF_RenderText_Blended_Wrapped(
-        font, "Here's some text here. Yep, just a whole lot of text baybeeeeee", white, 250);
-    TTF_CloseFont(font);
-    if (surface == nullptr) {
-        LOG_ERROR << "Failed to render text to surface";
-        SDL_Quit();
-        return 1;
-    }
-    flip_surface(surface);
-    LOG_INFO << "Created surface with format " << SDL_GetPixelFormatName(surface->format->format);
 
     Renderer renderer(window);
     if (renderer.initialize()) {
@@ -174,7 +116,6 @@ int main()
         t = steady_clock::now();
     }
 
-    SDL_FreeSurface(surface);
     SDL_DestroyWindow(window);
 
     LOG_INFO << "Exiting";
