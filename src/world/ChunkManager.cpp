@@ -5,7 +5,6 @@
 #include "yocto_noise.h"
 #include <cmath>
 #include <plog/Log.h>
-
 #include <stack>
 
 void generateChunk(std::unique_ptr<WorldChunk>& chunk)
@@ -27,21 +26,24 @@ ChunkManager::getChunkIndex(glm::ivec3& chunk_origin, glm::ivec3& center_chunk_o
 {
     int rel_x = (chunk_origin.x - center_chunk_origin.x) / WorldChunk::SPAN_X;
     int rel_z = (chunk_origin.z - center_chunk_origin.z) / WorldChunk::SPAN_Z;
-    if (abs(rel_x) > WORLD_SIZE || abs(rel_z) > WORLD_SIZE) {
+    if (abs(rel_x) > m_world_size || abs(rel_z) > m_world_size) {
         return {};
     }
-    int offset_x = rel_x + WORLD_SIZE;
-    int offset_z = rel_z + WORLD_SIZE;
-    return (2 * WORLD_SIZE + 1) * offset_x + offset_z;
+    int offset_x = rel_x + m_world_size;
+    int offset_z = rel_z + m_world_size;
+    return (2 * m_world_size + 1) * offset_x + offset_z;
 }
 
-ChunkManager::ChunkManager(Renderer* renderer) : m_renderer { renderer }, m_chunks { nullptr }
+ChunkManager::ChunkManager(Renderer* renderer, int world_size) :
+    m_renderer { renderer }, m_world_size { world_size }
 {
-    m_central_index = (2 * WORLD_SIZE + 1) * WORLD_SIZE + WORLD_SIZE;
+    auto len = (2 * m_world_size + 1);
+    m_chunks = std::vector<std::unique_ptr<WorldChunk>>(len * len);
+    m_central_index = len * m_world_size + m_world_size;
     glm::ivec3 center_chunk_coords(0, 0, 0);
 
-    for (int i = -WORLD_SIZE; i <= WORLD_SIZE; i++) {
-        for (int j = -WORLD_SIZE; j <= WORLD_SIZE; j++) {
+    for (int i = -m_world_size; i <= m_world_size; i++) {
+        for (int j = -m_world_size; j <= m_world_size; j++) {
             auto chunk_coord = center_chunk_coords
                 + glm::ivec3(WorldChunk::SPAN_X * i, 0, WorldChunk::SPAN_Z * j);
 
@@ -93,7 +95,7 @@ void ChunkManager::reloadChunks(glm::vec3 world_center)
         int x_dist = abs(chunk_ptr->origin.x - center_chunk_coords.x) / WorldChunk::SPAN_X;
         int z_dist = abs(chunk_ptr->origin.z - center_chunk_coords.z) / WorldChunk::SPAN_Z;
 
-        if (chunk_ptr && (x_dist > WORLD_SIZE || z_dist > WORLD_SIZE)) {
+        if (chunk_ptr && (x_dist > m_world_size || z_dist > m_world_size)) {
             auto index = getChunkIndex(chunk_ptr->origin, old_center);
             chunks_to_unload.push_back(index.value());
         }
@@ -108,15 +110,16 @@ void ChunkManager::reloadChunks(glm::vec3 world_center)
         m_chunks[ind].reset();
     }
 
-    const int len = 2 * WORLD_SIZE + 1;
+    const int len = 2 * m_world_size + 1;
     std::unique_ptr<WorldChunk> tmp_grid[len * len];
 
+    // Move all the loaded chunks into a temporary grid so we can reassign them to a new position
     for (int i = 0; i < len * len; i++) {
         tmp_grid[i].swap(m_chunks[i]);
     }
 
-    for (int i = -WORLD_SIZE; i <= WORLD_SIZE; i++) {
-        for (int j = -WORLD_SIZE; j <= WORLD_SIZE; j++) {
+    for (int i = -m_world_size; i <= m_world_size; i++) {
+        for (int j = -m_world_size; j <= m_world_size; j++) {
             auto chunk_coord = center_chunk_coords
                 + glm::ivec3(WorldChunk::SPAN_X * i, 0, WorldChunk::SPAN_Z * j);
 

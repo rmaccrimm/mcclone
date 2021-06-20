@@ -18,11 +18,11 @@
 #include "CameraMovementSystem.h"
 #include "ChunkLoadingSystem.h"
 #include "ChunkManager.h"
+#include "ChunkRenderSystem.h"
 #include "EntityAdmin.h"
 #include "InputManager.h"
 #include "WorldChunk.h"
 #include "components/Component.h"
-#include "ChunkRenderSystem.h"
 #include "rendering/Renderer.h"
 
 #include <chrono>
@@ -30,9 +30,7 @@
 #include <thread>
 #include <unordered_map>
 
-
-
-int main()
+int main(int argc, char** argv)
 {
     // Initialize logger
     static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
@@ -59,9 +57,9 @@ int main()
     if (renderer.initialize()) {
         return 1;
     }
-    
+
     InputManager input_mgr(window);
-    ChunkManager chunk_mgr(&renderer);
+    ChunkManager chunk_mgr(&renderer, argc > 1 ? std::stoi(argv[1]) : 5);
 
     EntityAdmin admin(&input_mgr, &renderer, &chunk_mgr);
     int camera_id
@@ -78,12 +76,12 @@ int main()
     ChunkLoadingSystem load_system(&admin);
 
     using namespace std::chrono;
-    
+
     auto t0 = high_resolution_clock::now();
     render_system.tick();
     auto t1 = high_resolution_clock::now();
     duration<double> tdiff = t1 - t0;
-    
+
     LOG_INFO << "Took " << tdiff.count() << " seconds to load world";
 
     double framerate = 60;
@@ -103,8 +101,8 @@ int main()
             input_mgr.update(event);
         }
         cam_system.tick();
-	load_system.tick();
-	render_system.tick();
+        load_system.tick();
+        render_system.tick();
         renderer.draw();
 
         auto t_draw = steady_clock::now();
