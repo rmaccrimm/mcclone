@@ -25,8 +25,8 @@
 #include "CameraControlSystem.h"
 #include "WorldChunk.h"
 #include "components/Component.h"
-#include "movement/MovementSystem.h"
-#include "movement/PhysicsSystem.h"
+#include "MovementSystem.h"
+#include "PhysicsSystem.h"
 #include "rendering/Renderer.h"
 
 #include <chrono>

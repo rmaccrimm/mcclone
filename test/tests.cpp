@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "util/coordinates.h"
 
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include <catch2/catch.hpp>
@@ -6,7 +6,7 @@
 using v = glm::vec3;
 using iv = glm::ivec3;
 
-TEST_CASE("Internal coordinate calc", "[utils]")
+TEST_CASE("Internal coordinate calc", "[coordinates]")
 {
     REQUIRE(internalCoord(v(0, 128, 0)) == iv(0, 128, 0));
     REQUIRE(internalCoord(v(31.9, 0, 0)) == iv(31, 0, 0));
@@ -25,7 +25,7 @@ TEST_CASE("Internal coordinate calc", "[utils]")
     REQUIRE(internalCoord(v(-55.0, 0, 55)) == iv(9, 0, 23));
 }
 
-TEST_CASE("Chunk coordinate calc", "[utils]")
+TEST_CASE("Chunk coordinate calc", "[coordinates]")
 {
     REQUIRE(chunkCoord(v(0, 0, 0)) == iv(0, 0, 0));
     REQUIRE(chunkCoord(v(31.9, 0, 0)) == iv(0, 0, 0));

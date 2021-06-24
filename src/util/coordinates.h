@@ -22,7 +22,7 @@ inline int roundToLowerMultiple(float x, int multiple)
     return (floor - (floor < 0 ? multiple - 1 : 0)) / multiple * multiple;
 }
 
-int getRemainder(float x, int multiple) { return x - roundToLowerMultiple(x, multiple); }
+inline int getRemainder(float x, int multiple) { return x - roundToLowerMultiple(x, multiple); }
 
 inline glm::ivec3 chunkCoord(glm::vec3 world_coord)
 {

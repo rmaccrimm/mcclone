@@ -1,6 +1,6 @@
 #include "ChunkManager.h"
 #include "WorldChunk.h"
-#include "utils.h"
+#include "util/coordinates.h"
 #include "yocto_math.h"
 #include "yocto_noise.h"
 #include <cmath>

@@ -17,7 +17,8 @@ include_directories(
 	${PROJECT_SOURCE_DIR}/src/
 	${PROJECT_SOURCE_DIR}/src/rendering
 	${PROJECT_SOURCE_DIR}/src/world
-	${PROJECT_SOURCE_DIR}/src/movement
+	${PROJECT_SOURCE_DIR}/src/entity
+	${PROJECT_SOURCE_DIR}/src/entity/systems
 	${CMAKE_BINARY_DIR}/generated/
 	${PROJECT_SOURCE_DIR}/include
 	SYSTEM INTERFACE  # Suppresses warnings from these files
@@ -36,13 +37,13 @@ target_link_libraries(
 	
 add_library(
 	ecs
-	EntityAdmin.cpp
+	entity/EntityAdmin.cpp
 	InputManager.cpp
-	CameraMovementSystem.cpp
-	CameraControlSystem.cpp
-	PlayerControlSystem.cpp
-	movement/MovementSystem.cpp
-	movement/PhysicsSystem.cpp
+	entity/systems/CameraMovementSystem.cpp
+	entity/systems/CameraControlSystem.cpp
+	entity/systems/PlayerControlSystem.cpp
+	entity/systems/MovementSystem.cpp
+	entity/systems/PhysicsSystem.cpp
 	world/WorldChunk.cpp	
 	world/ChunkManager.cpp	
 	world/ChunkRenderSystem.cpp

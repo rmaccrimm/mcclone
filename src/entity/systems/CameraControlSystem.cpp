@@ -2,7 +2,7 @@
 #include "EntityAdmin.h"
 #include "InputManager.h"
 #include "components/Component.h"
-#include "utils/math.h"
+#include "util/math.h"
 
 #include <glm/gtc/constants.hpp>
 #include <plog/Log.h>
