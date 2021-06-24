@@ -16,7 +16,8 @@ include_directories(
 	renderer PRIVATE
 	${PROJECT_SOURCE_DIR}/src/
 	${PROJECT_SOURCE_DIR}/src/rendering
-	${PROJECT_SOURCE_DIR}/src/world	
+	${PROJECT_SOURCE_DIR}/src/world
+	${PROJECT_SOURCE_DIR}/src/movement
 	${CMAKE_BINARY_DIR}/generated/
 	${PROJECT_SOURCE_DIR}/include
 	SYSTEM INTERFACE  # Suppresses warnings from these files
@@ -38,6 +39,9 @@ add_library(
 	EntityAdmin.cpp
 	InputManager.cpp
 	CameraMovementSystem.cpp
+	PlayerControlSystem.cpp
+	movement/MovementSystem.cpp
+	movement/PhysicsSystem.cpp
 	world/WorldChunk.cpp	
 	world/ChunkManager.cpp	
 	world/ChunkRenderSystem.cpp

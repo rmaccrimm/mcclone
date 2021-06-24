@@ -56,32 +56,35 @@ void CameraMovementSystem::tick()
             transform->m_forward = glm::normalize(glm::rotate(transform->m_forward, angle, right));
         }
 
-        glm::vec3 forward = transform->m_forward;
 
-        // Right now this is a fixed amount per frame. Will want some kind of time based
-        // system later but this works for now
-        if (input->isPressed(UP)) {
-            transform->m_position = pos + velocity * up;
-        }
-        if (input->isPressed(DOWN)) {
-            transform->m_position = pos - velocity * up;
-        }
-        // These movements are all backwards compared to what I expect, not sure why yet
-        if (input->isPressed(RIGHT)) {
-            transform->m_position = pos - velocity * right;
-        }
-        if (input->isPressed(LEFT)) {
-            transform->m_position = pos + velocity * right;
-        }
-        if (input->isPressed(FORWARD)) {
-            transform->m_position = pos + glm::cross(right, up) * velocity;
-        }
-        if (input->isPressed(BACK)) {
-            transform->m_position = pos + glm::cross(up, right) * velocity;
-        }
+	transform->m_position = m_admin->getComponent<TransformComponent>(cam->target)->m_position;
 
-        glm::mat4 view = glm::lookAt(
-            transform->m_position, transform->m_position + transform->m_forward, transform->m_up);
-        renderer->setViewMatrix(view);
+        // glm::vec3 forward = transform->m_forward;
+
+        // // Right now this is a fixed amount per frame. Will want some kind of time based
+        // // system later but this works for now
+        // if (input->isPressed(UP)) {
+        //     transform->m_position = pos + velocity * up;
+        // }
+        // if (input->isPressed(DOWN)) {
+        //     transform->m_position = pos - velocity * up;
+        // }
+        // // These movements are all backwards compared to what I expect, not sure why yet
+        // if (input->isPressed(RIGHT)) {
+        //     transform->m_position = pos - velocity * right;
+        // }
+        // if (input->isPressed(LEFT)) {
+        //     transform->m_position = pos + velocity * right;
+        // }
+        // if (input->isPressed(FORWARD)) {
+        //     transform->m_position = pos + glm::cross(right, up) * velocity;
+        // }
+        // if (input->isPressed(BACK)) {
+        //     transform->m_position = pos + glm::cross(up, right) * velocity;
+        // }
+
+        // glm::mat4 view = glm::lookAt(
+        //     transform->m_position, transform->m_position + transform->m_forward, transform->m_up);
+        // renderer->setViewMatrix(view);
     }
 }

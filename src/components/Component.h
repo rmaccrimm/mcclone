@@ -5,22 +5,22 @@
 #include "CameraComponent.h"
 #include "TransformComponent.h"
 #include "PlayerControlComponent.h"
+#include "CameraControlComponent.h"
+#include "BoxColliderComponent.h"
+#include "InputComponent.h"
+#include "PhysicsComponent.h"
+#include "MovementComponent.h"
 
 typedef std::variant<
     CameraComponent,
     TransformComponent,
-    PlayerControlComponent>
-Component;
-
-// struct Component
-// {
-//     template <class T> void assign() {
-// 	m_tag = T::TAG;
-// 	m_variant = T();
-//     }
-//     int m_tag = 0;
-//     ComponentVariant m_variant;    
-// };
+    PlayerControlComponent,
+    CameraControlComponent,
+    BoxColliderComponent,
+    InputComponent,
+    PhysicsComponent,
+    MovementComponent
+> Component;
 
 #endif /* _COMPONENT_H_ */
 
