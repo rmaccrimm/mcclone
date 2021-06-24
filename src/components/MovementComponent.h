@@ -6,8 +6,8 @@
 // Indicates movement "intent" before letting the physics system handle the actual movement
 struct MovementComponent
 {
-    static const int TAG = 1 << __COUNTER__;
-    glm::vec3 direction;
+    static const int TAG = 1 << 7;
+    glm::vec3 direction = {0, 0, 0};
 };
 
 

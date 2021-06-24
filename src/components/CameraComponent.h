@@ -5,7 +5,7 @@
 #include <glm/vec3.hpp>
 
 struct CameraComponent {
-    static const int TAG = 1 << __COUNTER__;
+    static const int TAG = 1 << 1;
     
     // Unused right now (I think) - idea was to link FOV settings to the camera entity
     glm::mat4 m_projection = glm::mat4(1.0);

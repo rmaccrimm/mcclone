@@ -5,13 +5,13 @@
 
 struct PhysicsComponent
 {
-    static const int TAG = 1 << __COUNTER__;
+    static const int TAG = 1 << 6;
     
-    float accel_rate = 0.1;
-    float deccel_rate;
-    float max_speed;
-    bool feels_gravity;
-    glm::vec3 velocity;
+    float accel_rate = 300;
+    float drag = 200;
+    float max_speed = 50;
+    bool feels_gravity = true;
+    glm::vec3 velocity = {0, 0, 0};
 };
 
 

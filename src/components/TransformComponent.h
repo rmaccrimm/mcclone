@@ -7,7 +7,7 @@
 
 struct TransformComponent
 {
-    static const int TAG = 1 << __COUNTER__;
+    static const int TAG = 1 << 0;
     glm::vec3 m_up = glm::vec3(0.0, 1.0, 0.0);
     glm::vec3 m_right = glm::vec3(1.0, 0.0, 0.0);
     glm::vec3 m_forward = glm::vec3(0.0, 0.0, -1.0);

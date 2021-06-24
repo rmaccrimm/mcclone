@@ -83,8 +83,8 @@ void CameraMovementSystem::tick()
         //     transform->m_position = pos + glm::cross(up, right) * velocity;
         // }
 
-        // glm::mat4 view = glm::lookAt(
-        //     transform->m_position, transform->m_position + transform->m_forward, transform->m_up);
-        // renderer->setViewMatrix(view);
+        glm::mat4 view = glm::lookAt(
+            transform->m_position, transform->m_position + transform->m_forward, transform->m_up);
+        renderer->setViewMatrix(view);
     }
 }

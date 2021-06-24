@@ -29,6 +29,6 @@ template<class ...Types>
 auto EntityAdmin::componentView()
 {
     int tag = getTag<Types...>();
-    auto tag_filter = [=](const auto& p){ return p.second.m_tag == tag; };
+    auto tag_filter = [=](const auto& p){ return (p.second.m_tag & tag) == tag; };
     return m_entity_map | std::views::filter(tag_filter) | std::views::keys;
 }

@@ -21,12 +21,11 @@
 #include "ChunkRenderSystem.h"
 #include "EntityAdmin.h"
 #include "InputManager.h"
+#include "PlayerControlSystem.h"
 #include "WorldChunk.h"
+#include "components/Component.h"
 #include "movement/MovementSystem.h"
 #include "movement/PhysicsSystem.h"
-#include "PlayerControlSystem.h"
-#include "CameraMovementSystem.h"
-#include "components/Component.h"
 #include "rendering/Renderer.h"
 
 #include <chrono>
@@ -34,6 +33,22 @@
 #include <thread>
 #include <unordered_map>
 
+int initPlayer(EntityAdmin &admin, int argc, char** argv)
+{
+    int player_id = admin.createEntity<
+        TransformComponent,
+        PlayerControlComponent,
+        MovementComponent,
+        PhysicsComponent>();
+    admin.getComponent<TransformComponent>(player_id)->m_position.y = 40.0f;
+    if (argc == 5) {
+	auto physics = admin.getComponent<PhysicsComponent>(player_id);
+	physics->accel_rate = std::stoi(argv[2]);
+	physics->drag = std::stoi(argv[3]);
+	physics->max_speed = std::stoi(argv[4]);
+    }
+    return player_id;
+}
 
 int main(int argc, char** argv)
 {
@@ -67,14 +82,13 @@ int main(int argc, char** argv)
     ChunkManager chunk_mgr(&renderer, argc > 1 ? std::stoi(argv[1]) : 5);
     EntityAdmin admin(&input_mgr, &renderer, &chunk_mgr);
 
-    int player_id = admin.createEntity<
+    int player_id = initPlayer(admin, argc, argv);
+
+    int camera_id = admin.createEntity<
+        CameraComponent,
         TransformComponent,
-        PlayerControlComponent,
         MovementComponent,
-        PhysicsComponent>();
-    
-    int camera_id
-        = admin.createEntity<CameraComponent, TransformComponent, PlayerControlComponent>();
+        PlayerControlComponent>();
     admin.getComponent<CameraComponent>(camera_id)->target = player_id;
 
     auto transform = admin.getComponent<TransformComponent>(camera_id);
@@ -87,10 +101,9 @@ int main(int argc, char** argv)
     PlayerControlSystem player_system(&admin);
     MovementSystem move_system(&admin);
     PhysicsSystem phys_system(&admin);
-    
+
     ChunkRenderSystem render_system(&admin);
     ChunkLoadingSystem load_system(&admin);
-    
 
     using namespace std::chrono;
 
@@ -117,9 +130,9 @@ int main(int argc, char** argv)
             }
             input_mgr.update(event);
         }
-	player_system.tick();
-	phys_system.tick();
-	move_system.tick();
+        player_system.tick();
+        phys_system.tick();
+        move_system.tick();
         cam_system.tick();
         load_system.tick();
         render_system.tick();

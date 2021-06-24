@@ -3,7 +3,7 @@
 
 struct PlayerControlComponent
 {
-    static const int TAG = 1 << __COUNTER__;
+    static const int TAG = 1 << 2;
 };
 
 

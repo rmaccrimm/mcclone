@@ -2,8 +2,8 @@
 #define _COMPONENT_H_
 
 #include <variant>
-#include "CameraComponent.h"
 #include "TransformComponent.h"
+#include "CameraComponent.h"
 #include "PlayerControlComponent.h"
 #include "CameraControlComponent.h"
 #include "BoxColliderComponent.h"
