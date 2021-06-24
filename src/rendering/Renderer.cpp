@@ -290,7 +290,8 @@ int Renderer::initTextures()
 int Renderer::loadGrassTexture()
 {
 
-    const char* img_path = "/home/rmaccrimmon/projects/mcclone/textures/Grass.png";
+    std::string base_name = "/textures/Grass.png";
+    std::string img_path = PROJECT_ROOT + base_name;
 
     GLuint new_tex;
     glGenTextures(1, &new_tex);
@@ -301,7 +302,7 @@ int Renderer::loadGrassTexture()
 
     LOG_INFO << "Loading texture " << img_path;
     int width, height, n;
-    unsigned char* data = stbi_load(img_path, &width, &height, &n, 0);
+    unsigned char* data = stbi_load(img_path.c_str(), &width, &height, &n, 0);
     if (data == nullptr) {
         LOG_ERROR << "Image loading failed";
         return 1;
