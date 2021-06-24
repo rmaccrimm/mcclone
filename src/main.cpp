@@ -22,6 +22,7 @@
 #include "EntityAdmin.h"
 #include "InputManager.h"
 #include "PlayerControlSystem.h"
+#include "CameraControlSystem.h"
 #include "WorldChunk.h"
 #include "components/Component.h"
 #include "movement/MovementSystem.h"
@@ -33,7 +34,7 @@
 #include <thread>
 #include <unordered_map>
 
-int initPlayer(EntityAdmin &admin, int argc, char** argv)
+int initPlayer(EntityAdmin& admin, int argc, char** argv)
 {
     int player_id = admin.createEntity<
         TransformComponent,
@@ -42,10 +43,10 @@ int initPlayer(EntityAdmin &admin, int argc, char** argv)
         PhysicsComponent>();
     admin.getComponent<TransformComponent>(player_id)->m_position.y = 40.0f;
     if (argc == 5) {
-	auto physics = admin.getComponent<PhysicsComponent>(player_id);
-	physics->accel_rate = std::stoi(argv[2]);
-	physics->drag = std::stoi(argv[3]);
-	physics->max_speed = std::stoi(argv[4]);
+        auto physics = admin.getComponent<PhysicsComponent>(player_id);
+        physics->accel_rate = std::stoi(argv[2]);
+        physics->drag = std::stoi(argv[3]);
+        physics->max_speed = std::stoi(argv[4]);
     }
     return player_id;
 }
@@ -84,20 +85,15 @@ int main(int argc, char** argv)
 
     int player_id = initPlayer(admin, argc, argv);
 
-    int camera_id = admin.createEntity<
-        CameraComponent,
-        TransformComponent,
-        MovementComponent,
-        PlayerControlComponent>();
+    int camera_id
+        = admin.createEntity<CameraComponent, CameraControlComponent, TransformComponent>();
     admin.getComponent<CameraComponent>(camera_id)->target = player_id;
 
-    auto transform = admin.getComponent<TransformComponent>(camera_id);
-    // transform->m_position = glm::vec3(16, 40.0, -10.0);
-    // transform->m_forward = glm::vec3(16.0, 10.0, 16.0) - transform->m_position;
-
+    auto transform = admin.getComponent<TransformComponent>(player_id);
     chunk_mgr.reloadChunks(transform->m_position);
 
-    CameraMovementSystem cam_system(&admin);
+    CameraControlSystem cam_control_system(&admin);
+    CameraMovementSystem cam_move_system(&admin);
     PlayerControlSystem player_system(&admin);
     MovementSystem move_system(&admin);
     PhysicsSystem phys_system(&admin);
@@ -106,14 +102,6 @@ int main(int argc, char** argv)
     ChunkLoadingSystem load_system(&admin);
 
     using namespace std::chrono;
-
-    auto t0 = high_resolution_clock::now();
-    render_system.tick();
-    auto t1 = high_resolution_clock::now();
-    duration<double> tdiff = t1 - t0;
-
-    LOG_INFO << "Took " << tdiff.count() << " seconds to load world";
-
     double framerate = 60;
     duration<double> T(1.0 / framerate);
     duration<double> dt;
@@ -131,9 +119,10 @@ int main(int argc, char** argv)
             input_mgr.update(event);
         }
         player_system.tick();
+	cam_control_system.tick();
         phys_system.tick();
         move_system.tick();
-        cam_system.tick();
+	cam_move_system.tick();
         load_system.tick();
         render_system.tick();
         renderer.draw();

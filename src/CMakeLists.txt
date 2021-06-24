@@ -39,6 +39,7 @@ add_library(
 	EntityAdmin.cpp
 	InputManager.cpp
 	CameraMovementSystem.cpp
+	CameraControlSystem.cpp
 	PlayerControlSystem.cpp
 	movement/MovementSystem.cpp
 	movement/PhysicsSystem.cpp

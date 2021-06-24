@@ -16,7 +16,7 @@ void ChunkLoadingSystem::tick()
 {
     auto chunk_mgr = m_admin->getChunkManager();
     for (int id :
-         m_admin->componentView<CameraComponent, TransformComponent, PlayerControlComponent>()) {
+         m_admin->componentView<TransformComponent, PlayerControlComponent>()) {
         auto player_position = m_admin->getComponent<TransformComponent>(id)->m_position;
 	
         if (!withinChunk(player_position, chunk_mgr->getCenterChunk()->origin)) {
