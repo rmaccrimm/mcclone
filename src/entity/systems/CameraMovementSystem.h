@@ -1,17 +1,12 @@
 #ifndef _CAMERAMOVEMENTSYSTEM_H_
 #define _CAMERAMOVEMENTSYSTEM_H_
 
-class EntityAdmin;
+#include "System.h"
 
-class CameraMovementSystem
-{
+class CameraMovementSystem : public System {
 public:
-    CameraMovementSystem(EntityAdmin *admin);
-    void tick();
-    
-private:
-    EntityAdmin* m_admin;
+    CameraMovementSystem(EntityAdmin& admin) : System(admin) { }
+    void tick() override;
 };
-
 
 #endif /* _CAMERAMOVEMENTSYSTEM_H_ */

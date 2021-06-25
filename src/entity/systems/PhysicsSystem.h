@@ -1,17 +1,12 @@
 #ifndef _PHYSICSSYSTEM_H_
 #define _PHYSICSSYSTEM_H_
 
-class EntityAdmin;
+#include "System.h"
 
-class PhysicsSystem
-{
+class PhysicsSystem : public System {
 public:
-    PhysicsSystem(EntityAdmin *admin);
-    void tick();
-    
-private:
-    EntityAdmin* m_admin;
+    PhysicsSystem(EntityAdmin& admin) : System(admin) { }
+    void tick() override;
 };
-
 
 #endif /* _PHYSICSSYSTEM_H_ */

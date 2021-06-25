@@ -1,16 +1,12 @@
 #ifndef _CAMERACONTROLSYSTEM_H_
 #define _CAMERACONTROLSYSTEM_H_
 
-class EntityAdmin;
+#include "System.h"
 
-class CameraControlSystem
-{
+class CameraControlSystem : public System {
 public:
-    CameraControlSystem(EntityAdmin* admin);
-    void tick();
-    
-private:
-    EntityAdmin* m_admin;
+    CameraControlSystem(EntityAdmin& admin) : System(admin) { }
+    void tick() override;
 };
 
 #endif /* _CAMERACONTROLSYSTEM_H_ */

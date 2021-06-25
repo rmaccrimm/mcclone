@@ -1,17 +1,12 @@
 #ifndef _PLAYERCONTROLSYSTEM_H_
 #define _PLAYERCONTROLSYSTEM_H_
 
-class EntityAdmin;
+#include "System.h"
 
-class PlayerControlSystem
-{
+class PlayerControlSystem : public System {
 public:
-    PlayerControlSystem(EntityAdmin *admin);
-    void tick();
-    
-private:
-    EntityAdmin* m_admin;
+    PlayerControlSystem(EntityAdmin& admin) : System(admin) { }
+    void tick() override;
 };
-
 
 #endif /* _PLAYERCONTROLSYSTEM_H_ */

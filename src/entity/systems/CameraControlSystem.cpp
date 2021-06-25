@@ -8,14 +8,12 @@
 #include <plog/Log.h>
 
 
-CameraControlSystem::CameraControlSystem(EntityAdmin* admin) : m_admin { admin } { }
-
 void CameraControlSystem::tick()
 {
-    auto input = m_admin->getInputManager();
+    auto input = m_admin.getInputManager();
     for (int id :
-         m_admin->componentView<TransformComponent, CameraControlComponent>()) {
-        auto transform = m_admin->getComponent<TransformComponent>(id);
+         m_admin.componentView<TransformComponent, CameraControlComponent>()) {
+        auto transform = m_admin.getComponent<TransformComponent>(id);
 
         const float rads = InputManager::DEGREES_PER_MOUSE_UNIT * glm::pi<float>() / 180.0f;
         glm::vec3 rotation(0, 0, 0);

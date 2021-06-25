@@ -7,16 +7,14 @@
 #include <glm/gtc/constants.hpp>
 #include <plog/Log.h>
 
-PlayerControlSystem::PlayerControlSystem(EntityAdmin* admin) : m_admin { admin } { }
-
 void PlayerControlSystem::tick()
 {
-    auto input = m_admin->getInputManager();
+    auto input = m_admin.getInputManager();
     for (int id :
-         m_admin->componentView<MovementComponent, TransformComponent, PlayerControlComponent>()) {
+         m_admin.componentView<MovementComponent, TransformComponent, PlayerControlComponent>()) {
 
         // Not using physics-based rotation, so directly update the transform here
-        auto transform = m_admin->getComponent<TransformComponent>(id);
+        auto transform = m_admin.getComponent<TransformComponent>(id);
         glm::vec3 rotation(0, 0, 0);
 
         // Only allow horizontal turns (rotation about y-axis) for player entity
@@ -27,7 +25,7 @@ void PlayerControlSystem::tick()
         rotateEuler(rotation, transform);
 
         // For translation, set the move component up so physics can use it automatically
-        auto move = m_admin->getComponent<MovementComponent>(id);
+        auto move = m_admin.getComponent<MovementComponent>(id);
         glm::vec3& direction = move->direction;
 
         glm::vec3 frw = transform->m_forward;

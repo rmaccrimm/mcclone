@@ -1,17 +1,12 @@
 #ifndef _CHUNKLOADINGSYSTEM_H_
 #define _CHUNKLOADINGSYSTEM_H_
 
-class EntityAdmin;
+#include "System.h"
 
-class ChunkLoadingSystem
-{
+class ChunkLoadingSystem : public System {
 public:
-    ChunkLoadingSystem(EntityAdmin *m_admin);
+    ChunkLoadingSystem(EntityAdmin& admin) : System(admin) { }
     void tick();
-    
-private:
-    EntityAdmin *m_admin;
 };
-
 
 #endif /* _CHUNKLOADINGSYSTEM_H_ */

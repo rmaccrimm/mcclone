@@ -2,8 +2,8 @@
 #include <array>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
-#include <unordered_map>
 #include <plog/Log.h>
+#include <unordered_map>
 
 #include "ChunkManager.h"
 #include "ChunkRenderSystem.h"
@@ -118,11 +118,9 @@ const std::vector<unsigned int> INDICES = {
     0, 18, 1, 3, 19, 4, 12, 20, 13, 6, 21, 7,  15, 22, 16, 9,  23, 10,
 };
 
-ChunkRenderSystem::ChunkRenderSystem(EntityAdmin* admin) : m_admin { admin } { }
-
 void ChunkRenderSystem::loadCubeFaces(glm::vec3 world_coord, RenderObject& target)
 {
-    auto chunk_mgr = m_admin->getChunkManager();
+    auto chunk_mgr = m_admin.getChunkManager();
     int starting_index = target.vertices.size();
 
     bool vert_used[24] = { 0 };
@@ -158,15 +156,16 @@ void ChunkRenderSystem::loadCubeFaces(glm::vec3 world_coord, RenderObject& targe
 
 void ChunkRenderSystem::tick()
 {
-    auto chunk_mgr = m_admin->getChunkManager();
-    auto renderer = m_admin->getRenderer();
+    auto chunk_mgr = m_admin.getChunkManager();
+    auto renderer = m_admin.getRenderer();
 
     // TODO - some kind of chunk iter
     for (auto& chunk : chunk_mgr->m_chunks) {
-	if (!chunk->updated) {
-	    continue;
-	}
-        LOG_VERBOSE << "Uploading chunk (" << chunk->origin.x << ", " << chunk->origin.z << ") to GPU";
+        if (!chunk->updated) {
+            continue;
+        }
+        LOG_VERBOSE << "Uploading chunk (" << chunk->origin.x << ", " << chunk->origin.z
+                    << ") to GPU";
         RenderObject render_obj;
         for (int y = 0; y < WorldChunk::SPAN_Y; y++) {
             for (int x = 0; x < WorldChunk::SPAN_X; x++) {
@@ -180,6 +179,6 @@ void ChunkRenderSystem::tick()
             }
         }
         renderer->updateRenderObject(chunk->render_obj_id, render_obj);
-	chunk->updated = false;
+        chunk->updated = false;
     }
 }

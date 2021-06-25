@@ -13,25 +13,18 @@
 #include <plog/Log.h>
 #include <stdio.h>
 #include <variant>
-
-#include "CameraMovementSystem.h"
-#include "ChunkLoadingSystem.h"
-#include "ChunkManager.h"
-#include "ChunkRenderSystem.h"
-#include "EntityAdmin.h"
-#include "InputManager.h"
-#include "PlayerControlSystem.h"
-#include "CameraControlSystem.h"
-#include "WorldChunk.h"
-#include "components/Component.h"
-#include "MovementSystem.h"
-#include "PhysicsSystem.h"
-#include "rendering/Renderer.h"
-
 #include <chrono>
 #include <ranges>
 #include <thread>
 #include <unordered_map>
+
+#include "ChunkManager.h"
+#include "EntityAdmin.h"
+#include "InputManager.h"
+#include "SystemList.h"
+#include "WorldChunk.h"
+#include "components/Component.h"
+#include "rendering/Renderer.h"
 
 int initPlayer(EntityAdmin& admin, int argc, char** argv)
 {
@@ -82,6 +75,8 @@ int main(int argc, char** argv)
     ChunkManager chunk_mgr(&renderer, argc > 1 ? std::stoi(argv[1]) : 5);
     EntityAdmin admin(&input_mgr, &renderer, &chunk_mgr);
 
+    SystemList system_list(admin);
+    
     int player_id = initPlayer(admin, argc, argv);
 
     int camera_id
@@ -91,14 +86,6 @@ int main(int argc, char** argv)
     auto transform = admin.getComponent<TransformComponent>(player_id);
     chunk_mgr.reloadChunks(transform->m_position);
 
-    CameraControlSystem cam_control_system(&admin);
-    CameraMovementSystem cam_move_system(&admin);
-    PlayerControlSystem player_system(&admin);
-    MovementSystem move_system(&admin);
-    PhysicsSystem phys_system(&admin);
-
-    ChunkRenderSystem render_system(&admin);
-    ChunkLoadingSystem load_system(&admin);
 
     using namespace std::chrono;
     double framerate = 60;
@@ -117,13 +104,7 @@ int main(int argc, char** argv)
             }
             input_mgr.update(event);
         }
-        player_system.tick();
-	cam_control_system.tick();
-        phys_system.tick();
-        move_system.tick();
-	cam_move_system.tick();
-        load_system.tick();
-        render_system.tick();
+	system_list.runAll();
         renderer.draw();
 
         auto t_draw = steady_clock::now();

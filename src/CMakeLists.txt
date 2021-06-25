@@ -52,6 +52,7 @@ add_library(
 add_executable(
 	main
 	main.cpp
+	SystemList.cpp
 )
 target_link_libraries(
 	main

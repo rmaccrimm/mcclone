@@ -1,21 +1,20 @@
 #ifndef _CHUNKRENDERSYSTEM_H_
 #define _CHUNKRENDERSYSTEM_H_
 
-#include <glm/vec3.hpp>
 #include "RenderObject.h"
+#include <glm/vec3.hpp>
 
-class EntityAdmin;
+#include "System.h"
 
 /* Should eventually inherit from a System base class
  */
-class ChunkRenderSystem
-{
+class ChunkRenderSystem : public System {
 public:
-    ChunkRenderSystem(EntityAdmin* admin);
+    ChunkRenderSystem(EntityAdmin& admin) : System(admin) { }
     void tick();
+
 private:
-    void loadCubeFaces(glm::vec3 cube_position, RenderObject &target);
-    EntityAdmin* m_admin;
+    void loadCubeFaces(glm::vec3 cube_position, RenderObject& target);
 };
 
 #endif /* _RENDERSYSTEM_H_ */

@@ -1,18 +1,12 @@
 #ifndef _MOVEMENTSYSTEM_H_
 #define _MOVEMENTSYSTEM_H_
 
-class EntityAdmin;
+#include "System.h"
 
-class MovementSystem
-{
+class MovementSystem : public System {
 public:
-    MovementSystem(EntityAdmin *admin);
-    void tick();
-
-private:
-    EntityAdmin* m_admin;
+    MovementSystem(EntityAdmin& admin) : System(admin) { }
+    void tick() override;
 };
-
-
 
 #endif /* _MOVEMENTSYSTEM_H_ */

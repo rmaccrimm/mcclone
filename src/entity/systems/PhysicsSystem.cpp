@@ -5,20 +5,18 @@
 #include <algorithm>
 #include <glm/geometric.hpp>
 
-PhysicsSystem::PhysicsSystem(EntityAdmin* admin) : m_admin { admin } { }
-
 void PhysicsSystem::tick()
 {
-    for (auto id : m_admin->componentView<MovementComponent, PhysicsComponent>()) {
-        auto move = m_admin->getComponent<MovementComponent>(id);
-        auto phys = m_admin->getComponent<PhysicsComponent>(id);
+    for (auto id : m_admin.componentView<MovementComponent, PhysicsComponent>()) {
+        auto move = m_admin.getComponent<MovementComponent>(id);
+        auto phys = m_admin.getComponent<PhysicsComponent>(id);
         assert(move);
         assert(phys);
 
         const glm::vec3 zero(0, 0, 0);
         glm::vec3& v = phys->velocity;
         glm::vec3 dn = move->direction == zero ? zero : glm::normalize(move->direction);
-	
+
         const float accel = phys->accel_rate;
         const float drag = phys->drag;
         const float dt = 1.0f / 60.0f; // TODO get this from timer
