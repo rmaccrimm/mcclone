@@ -14,6 +14,8 @@
 class ChunkManager {
 public:
     ChunkManager(Renderer& renderer, int world_size);
+    ChunkManager(const ChunkManager&) = delete;
+    ChunkManager& operator=(const ChunkManager&) = delete;
 
     std::vector<std::unique_ptr<WorldChunk>> m_chunks;
 

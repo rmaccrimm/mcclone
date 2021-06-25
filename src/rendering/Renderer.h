@@ -22,6 +22,8 @@ class Renderer {
 public:
     Renderer(SDL_Window* window);
     ~Renderer();
+    Renderer(const Renderer&) = delete;
+    Renderer& operator=(const Renderer&) = delete;
 
     int initialize();
 

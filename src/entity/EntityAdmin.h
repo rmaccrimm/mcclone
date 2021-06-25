@@ -15,6 +15,8 @@ class ChunkManager;
 class EntityAdmin {
 public:
     EntityAdmin(InputManager* input_mgr, Renderer* renderer, ChunkManager* chunk_mgr);
+    EntityAdmin(const EntityAdmin&) = delete;
+    EntityAdmin& operator=(const EntityAdmin&) = delete;
 
     /* Creates a new entity with the given list of component types. All components are
        default-constructed and can only be modified after creation with getComponent
