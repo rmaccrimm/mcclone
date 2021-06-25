@@ -29,7 +29,8 @@ int initPlayer(EntityAdmin& admin, int argc, char** argv)
         TransformComponent,
         PlayerControlComponent,
         MovementComponent,
-        PhysicsComponent>();
+        PhysicsComponent,
+	BoxColliderComponent>();
     admin.getComponent<TransformComponent>(player_id).m_position.y = 40.0f;
     if (argc == 5) {
         auto& physics = admin.getComponent<PhysicsComponent>(player_id);

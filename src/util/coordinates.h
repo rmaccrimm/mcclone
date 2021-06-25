@@ -7,7 +7,7 @@
 #include <sstream>
 #include <cmath>
 
-std::ostream& operator<<(std::ostream& os, glm::vec3 const& value)
+inline std::ostream& operator<<(std::ostream& os, glm::vec3 const& value)
 {
     std::stringstream ss;
     ss << "(" << value.x << ", " << value.y << ", " << value.z << ")";
@@ -15,10 +15,16 @@ std::ostream& operator<<(std::ostream& os, glm::vec3 const& value)
     return os;
 }
 
-inline int roundToLowerMultiple(float x, int multiple)
+inline int ifloor(float x)
 {
     int floor = int(x);
     if (floor > x) floor--;
+    return floor;
+}
+
+inline int roundToLowerMultiple(float x, int multiple)
+{
+    int floor = ifloor(x);
     return (floor - (floor < 0 ? multiple - 1 : 0)) / multiple * multiple;
 }
 

@@ -21,6 +21,7 @@ void PhysicsSystem::tick()
 
         auto drag_accel = (v == zero) ? zero : drag * -glm::normalize(v);
         auto input_accel = (dn == zero) ? zero : accel * dn;
+	// auto gravity_accel = (phys.feels_gravity) ? -500.0f * glm::vec3(0, 1, 0) : zero;
         auto total_accel = drag_accel + input_accel;
 
         auto v_new = v + dt * total_accel;

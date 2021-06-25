@@ -43,6 +43,7 @@ add_library(
 	entity/systems/PlayerControlSystem.cpp
 	entity/systems/MovementSystem.cpp
 	entity/systems/PhysicsSystem.cpp
+	entity/systems/CollisionSystem.cpp
 	world/WorldChunk.cpp	
 	world/ChunkManager.cpp	
 	world/ChunkRenderSystem.cpp
