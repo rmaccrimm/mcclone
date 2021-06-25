@@ -2,6 +2,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <set>
+#include <exception>
 
 #include "EntityAdmin.h"
 #include "components/Component.h"
@@ -13,13 +14,11 @@ TEST_CASE("Create/Get entity components", "[EntityAdmin]")
 
     auto t = admin.getComponent<TransformComponent>(id);
     auto c = admin.getComponent<CameraComponent>(id);
-    auto p = admin.getComponent<PlayerControlComponent>(id);
-
     // Default to identiy matrices
-    REQUIRE(t->m_position == glm::vec3());
-    REQUIRE(c->m_projection == glm::mat4(1.0));
-    // Entity has no player control component
-    REQUIRE(p == nullptr);
+    REQUIRE(t.m_position == glm::vec3());
+    REQUIRE(c.m_projection == glm::mat4(1.0));
+
+    REQUIRE_THROWS_AS(admin.getComponent<PlayerControlComponent>(id), std::invalid_argument);
 }
 
 TEST_CASE("Iterate over sets of components", "[EntityAdmin]")
@@ -62,3 +61,21 @@ TEST_CASE("Iterate over sets of components", "[EntityAdmin]")
     }
     REQUIRE(s == std::set<int> { id0, id1, id2 });
 }
+
+TEST_CASE("Get component by copy", "[EntityAdmin]")
+{
+    EntityAdmin admin(nullptr, nullptr, nullptr);
+    int id0 = admin.createEntity<TransformComponent>();
+
+    auto &t = admin.getComponent<TransformComponent>(id0);
+    t.m_position = glm::vec3(-71, 0, 33);
+
+    auto s = admin.getComponent<TransformComponent>(id0);
+    s.m_position = glm::vec3(-11, 12, 19);
+
+    auto q = admin.getComponent<TransformComponent>(id0);
+    REQUIRE(q.m_position.x == -71);
+    REQUIRE(q.m_position.y == 0);
+    REQUIRE(q.m_position.z == 33);
+}
+

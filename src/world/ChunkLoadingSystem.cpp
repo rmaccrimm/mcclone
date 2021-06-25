@@ -12,13 +12,13 @@ bool withinChunk(glm::vec3 coord, glm::vec3 chunk_origin)
 
 void ChunkLoadingSystem::tick()
 {
-    auto chunk_mgr = m_admin.getChunkManager();
+    auto& chunk_mgr = m_admin.getChunkManager();
     for (int id :
          m_admin.componentView<TransformComponent, PlayerControlComponent>()) {
-        auto player_position = m_admin.getComponent<TransformComponent>(id)->m_position;
+        auto player_position = m_admin.getComponent<TransformComponent>(id).m_position;
 	
-        if (!withinChunk(player_position, chunk_mgr->getCenterChunk()->origin)) {
-            chunk_mgr->reloadChunks(player_position);
+        if (!withinChunk(player_position, chunk_mgr.getCenterChunk()->origin)) {
+            chunk_mgr.reloadChunks(player_position);
         }
     }
 }

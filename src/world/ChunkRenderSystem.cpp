@@ -1,4 +1,3 @@
-
 #include <array>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
@@ -120,7 +119,7 @@ const std::vector<unsigned int> INDICES = {
 
 void ChunkRenderSystem::loadCubeFaces(glm::vec3 world_coord, RenderObject& target)
 {
-    auto chunk_mgr = m_admin.getChunkManager();
+    auto& chunk_mgr = m_admin.getChunkManager();
     int starting_index = target.vertices.size();
 
     bool vert_used[24] = { 0 };
@@ -128,7 +127,7 @@ void ChunkRenderSystem::loadCubeFaces(glm::vec3 world_coord, RenderObject& targe
     int len_indices_used = 0;
     for (int i = 0; i < 36; i += 3) {
         auto& v = CUBE[INDICES[i]];
-        if (chunk_mgr->checkNeighbour(world_coord, v.normal)) {
+        if (chunk_mgr.checkNeighbour(world_coord, v.normal)) {
             continue;
         }
         for (int j = 0; j < 3; j++) {
@@ -156,11 +155,11 @@ void ChunkRenderSystem::loadCubeFaces(glm::vec3 world_coord, RenderObject& targe
 
 void ChunkRenderSystem::tick()
 {
-    auto chunk_mgr = m_admin.getChunkManager();
-    auto renderer = m_admin.getRenderer();
+    auto& chunk_mgr = m_admin.getChunkManager();
+    auto& renderer = m_admin.getRenderer();
 
     // TODO - some kind of chunk iter
-    for (auto& chunk : chunk_mgr->m_chunks) {
+    for (auto& chunk : chunk_mgr.m_chunks) {
         if (!chunk->updated) {
             continue;
         }
@@ -178,7 +177,7 @@ void ChunkRenderSystem::tick()
                 }
             }
         }
-        renderer->updateRenderObject(chunk->render_obj_id, render_obj);
+        renderer.updateRenderObject(chunk->render_obj_id, render_obj);
         chunk->updated = false;
     }
 }

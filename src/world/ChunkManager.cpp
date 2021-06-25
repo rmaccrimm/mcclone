@@ -34,7 +34,7 @@ ChunkManager::getChunkIndex(glm::ivec3& chunk_origin, glm::ivec3& center_chunk_o
     return (2 * m_world_size + 1) * offset_x + offset_z;
 }
 
-ChunkManager::ChunkManager(Renderer* renderer, int world_size) :
+ChunkManager::ChunkManager(Renderer& renderer, int world_size) :
     m_renderer { renderer }, m_world_size { world_size }
 {
     auto len = (2 * m_world_size + 1);
@@ -49,7 +49,7 @@ ChunkManager::ChunkManager(Renderer* renderer, int world_size) :
 
             auto new_index = getChunkIndex(chunk_coord, center_chunk_coords).value();
             LOG_DEBUG << "Loading chunk (" << chunk_coord.x << ", " << chunk_coord.z << ")";
-            auto render_id = m_renderer->newRenderObject();
+            auto render_id = m_renderer.newRenderObject();
             m_chunks[new_index] = std::make_unique<WorldChunk>(chunk_coord, render_id);
             generateChunk(m_chunks[new_index]);
         }
@@ -135,7 +135,7 @@ void ChunkManager::reloadChunks(glm::vec3 world_center)
                     render_id = render_ids.top();
                     render_ids.pop();
                 } else {
-                    render_id = m_renderer->newRenderObject();
+                    render_id = m_renderer.newRenderObject();
                 }
                 m_chunks[new_index] = std::make_unique<WorldChunk>(chunk_coord, render_id);
                 generateChunk(m_chunks[new_index]);

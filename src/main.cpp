@@ -12,11 +12,8 @@
 #include <plog/Init.h>
 #include <plog/Log.h>
 #include <stdio.h>
-#include <variant>
 #include <chrono>
-#include <ranges>
 #include <thread>
-#include <unordered_map>
 
 #include "ChunkManager.h"
 #include "EntityAdmin.h"
@@ -33,12 +30,12 @@ int initPlayer(EntityAdmin& admin, int argc, char** argv)
         PlayerControlComponent,
         MovementComponent,
         PhysicsComponent>();
-    admin.getComponent<TransformComponent>(player_id)->m_position.y = 40.0f;
+    admin.getComponent<TransformComponent>(player_id).m_position.y = 40.0f;
     if (argc == 5) {
-        auto physics = admin.getComponent<PhysicsComponent>(player_id);
-        physics->accel_rate = std::stoi(argv[2]);
-        physics->drag = std::stoi(argv[3]);
-        physics->max_speed = std::stoi(argv[4]);
+        auto& physics = admin.getComponent<PhysicsComponent>(player_id);
+        physics.accel_rate = std::stoi(argv[2]);
+        physics.drag = std::stoi(argv[3]);
+        physics.max_speed = std::stoi(argv[4]);
     }
     return player_id;
 }
@@ -72,7 +69,7 @@ int main(int argc, char** argv)
     }
 
     InputManager input_mgr(window);
-    ChunkManager chunk_mgr(&renderer, argc > 1 ? std::stoi(argv[1]) : 5);
+    ChunkManager chunk_mgr(renderer, argc > 1 ? std::stoi(argv[1]) : 5);
     EntityAdmin admin(&input_mgr, &renderer, &chunk_mgr);
 
     SystemList system_list(admin);
@@ -81,10 +78,10 @@ int main(int argc, char** argv)
 
     int camera_id
         = admin.createEntity<CameraComponent, CameraControlComponent, TransformComponent>();
-    admin.getComponent<CameraComponent>(camera_id)->target = player_id;
+    admin.getComponent<CameraComponent>(camera_id).target = player_id;
 
     auto transform = admin.getComponent<TransformComponent>(player_id);
-    chunk_mgr.reloadChunks(transform->m_position);
+    chunk_mgr.reloadChunks(transform.m_position);
 
 
     using namespace std::chrono;

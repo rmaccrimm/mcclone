@@ -13,7 +13,7 @@
 
 class ChunkManager {
 public:
-    ChunkManager(Renderer* renderer, int world_size);
+    ChunkManager(Renderer& renderer, int world_size);
 
     std::vector<std::unique_ptr<WorldChunk>> m_chunks;
 
@@ -26,7 +26,7 @@ public:
 private:
     std::optional<int> getChunkIndex(glm::ivec3& chunk_origin, glm::ivec3& center_chunk_origin);
 
-    Renderer* m_renderer;
+    Renderer& m_renderer;
     unsigned int m_central_index;
     int m_world_size;
 };
