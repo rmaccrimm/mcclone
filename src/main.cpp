@@ -31,7 +31,7 @@ int initPlayer(EntityAdmin& admin, int argc, char** argv)
         MovementComponent,
         PhysicsComponent,
 	BoxColliderComponent>();
-    admin.getComponent<TransformComponent>(player_id).m_position.y = 40.0f;
+    admin.getComponent<TransformComponent>(player_id).m_position.y = 100.0f;
     if (argc == 5) {
         auto& physics = admin.getComponent<PhysicsComponent>(player_id);
         physics.accel_rate = std::stoi(argv[2]);
@@ -81,7 +81,7 @@ int main(int argc, char** argv)
         = admin.createEntity<CameraComponent, CameraControlComponent, TransformComponent>();
     admin.getComponent<CameraComponent>(camera_id).target = player_id;
 
-    auto transform = admin.getComponent<TransformComponent>(player_id);
+    auto& transform = admin.getComponent<TransformComponent>(player_id);
     chunk_mgr.reloadChunks(transform.m_position);
 
 

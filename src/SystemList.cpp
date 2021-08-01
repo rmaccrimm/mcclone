@@ -4,10 +4,11 @@
 #include "ChunkLoadingSystem.h"
 #include "ChunkRenderSystem.h"
 #include "EntityAdmin.h"
-#include "MovementSystem.h"
+// #include "MovementSystem.h"
 #include "PhysicsSystem.h"
-#include "CollisionSystem.h"
+// #include "CollisionSystem.h"
 #include "PlayerControlSystem.h"
+#include "BoxColliderMovementSystem.h"
 
 SystemList::SystemList(EntityAdmin& admin)
 {
@@ -15,8 +16,7 @@ SystemList::SystemList(EntityAdmin& admin)
     m_systems.push_back(std::make_unique<CameraControlSystem>(admin));
     m_systems.push_back(std::make_unique<CameraMovementSystem>(admin));
     m_systems.push_back(std::make_unique<PhysicsSystem>(admin));
-    m_systems.push_back(std::make_unique<CollisionSystem>(admin));
-    m_systems.push_back(std::make_unique<MovementSystem>(admin));
+    m_systems.push_back(std::make_unique<BoxColliderMovementSystem>(admin));
     m_systems.push_back(std::make_unique<ChunkLoadingSystem>(admin));
     m_systems.push_back(std::make_unique<ChunkRenderSystem>(admin));
 }

@@ -41,9 +41,8 @@ add_library(
 	entity/systems/CameraMovementSystem.cpp
 	entity/systems/CameraControlSystem.cpp
 	entity/systems/PlayerControlSystem.cpp
-	entity/systems/MovementSystem.cpp
 	entity/systems/PhysicsSystem.cpp
-	entity/systems/CollisionSystem.cpp
+	entity/systems/BoxColliderMovementSystem.cpp
 	world/WorldChunk.cpp	
 	world/ChunkManager.cpp	
 	world/ChunkRenderSystem.cpp
