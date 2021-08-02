@@ -17,6 +17,10 @@ class BoxColliderMovementSystem : public System {
 public:
     BoxColliderMovementSystem(EntityAdmin& admin) : System(admin) { }
     void tick() override;
+
+private:
+    glm::vec3 calcVelocity(glm::vec3 p_init, glm::vec3 size, glm::vec3 velocity);
+    glm::vec3 calcFinalPosition(glm::vec3 p_init, glm::vec3 p_final, glm::vec3 size);
 };
 
 #endif /* _BOXCOLLIDERMOVEMENTSYSTEM_H_ */

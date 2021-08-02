@@ -4,8 +4,8 @@
 #include "WorldChunk.h"
 #include <glm/vec3.hpp>
 
-#include <sstream>
 #include <cmath>
+#include <sstream>
 
 inline std::ostream& operator<<(std::ostream& os, glm::vec3 const& value)
 {
@@ -15,20 +15,42 @@ inline std::ostream& operator<<(std::ostream& os, glm::vec3 const& value)
     return os;
 }
 
+/*
+  Rounds towards negative infinity
+ */
 inline int ifloor(float x)
 {
     int floor = int(x);
-    if (floor > x) floor--;
+    if (floor > x)
+        floor--;
     return floor;
 }
 
-inline int roundToLowerMultiple(float x, int multiple)
+/*
+  Rounds towards positive infinity
+ */
+inline int iceil(float x)
 {
-    int floor = ifloor(x);
-    return (floor - (floor < 0 ? multiple - 1 : 0)) / multiple * multiple;
+    int ceil = int(x);
+    if (ceil < x)
+	ceil++;
+    return ceil;
 }
 
-inline int getRemainder(float x, int multiple) { return x - roundToLowerMultiple(x, multiple); }
+/*
+  Rounds x to the nearest lower multiple of n (rounds towards negative infinity)
+ */
+inline int roundToLowerMultiple(float x, int n)
+{
+    int floor = ifloor(x);
+    return (floor - (floor < 0 ? n - 1 : 0)) / n * n;
+}
+
+/*
+  Get the integer remainder after rounding x to the nearest lower multiple of n (rounds towards
+  negative infinity)
+ */
+inline int getRemainder(float x, int n) { return x - roundToLowerMultiple(x, n); }
 
 inline glm::ivec3 chunkCoord(glm::vec3 world_coord)
 {
